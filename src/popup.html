@@ -1,0 +1,13 @@
+<!-- popup.html -->
+<body style="margin:0; background:rgba(30,30,30,0.72); color:white;
+             border-radius:8px; padding:8px 8px; font-size:13px; line-height:1.2;
+             font-family:system-ui; pointer-events:none; white-space:nowrap;
+             overflow:hidden;">
+  <span id="msg">メッセージ</span>
+  <script>
+    window.popupAPI.onPopupMessage((message) => {
+      const msgElement = document.getElementById('msg');
+      msgElement.textContent = message;
+    });
+  </script>
+</body>

@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <title>設定</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      padding: 16px;
+      font-family: 'Segoe UI', sans-serif;
+      background: #f5f5f5;
+      color: #222;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 18px;
+      font-weight: 700;
+    }
+    .description {
+      margin: 0 0 16px;
+      color: #555;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+    .table-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      border: 1px solid #d1d1d1;
+      border-radius: 8px;
+      background: #fff;
+      margin-bottom: 12px;
+      overflow: hidden;
+    }
+    .table-header {
+      display: grid;
+      grid-template-columns: 1fr 60px 140px 140px;
+      gap: 12px;
+      padding: 12px;
+      background: #f0f0f0;
+      border-bottom: 1px solid #d1d1d1;
+      font-weight: 600;
+      font-size: 13px;
+    }
+    .table-body {
+      flex: 1;
+      overflow-y: auto;
+    }
+    .table-row {
+      display: grid;
+      grid-template-columns: 1fr 60px 140px 140px;
+      gap: 12px;
+      padding: 12px;
+      border-bottom: 1px solid #e0e0e0;
+      align-items: center;
+    }
+    .table-row:last-child {
+      border-bottom: none;
+    }
+    .table-row.missing {
+      background: #fafafa;
+      opacity: 0.75;
+    }
+    .device-name {
+      word-break: break-word;
+      font-size: 14px;
+    }
+    .device-name.unavailable {
+      color: #999;
+      font-size: 12px;
+    }
+    .checkbox-col {
+      display: flex;
+      justify-content: center;
+    }
+    .checkbox-col input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+    }
+    .alias-col {
+      display: flex;
+    }
+    .alias-col input[type="text"] {
+      width: 100%;
+      padding: 6px 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+    .hotkey-col {
+      display: flex;
+    }
+    .hotkey-col select {
+      width: 100%;
+      padding: 6px 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+    .right-actions {
+      display: flex;
+      gap: 10px;
+    }
+    button {
+      padding: 8px 14px;
+      border: none;
+      border-radius: 6px;
+      background: #0078d4;
+      color: white;
+      font-size: 13px;
+      cursor: pointer;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    button.secondary {
+      background: #e1e1e1;
+      color: #222;
+    }
+    button:disabled {
+      opacity: 0.6;
+      cursor: default;
+    }
+    #refreshBtn svg {
+      width: 16px;
+      height: 16px;
+    }
+    #refreshBtn:active svg {
+      animation: spin 0.6s linear;
+    }
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    #status {
+      color: #0078d4;
+      font-size: 13px;
+      min-height: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1 id="pageTitle">設定</h1>
+  <div style="margin-top: 16px;">
+    <label style="display: flex; align-items: center; gap: 8px;">
+      <input type="checkbox" id="hotkeysEnabled">
+      <span id="hotkeysLabel">Ctrl+Alt+矢印キーでデバイスを選択</span>
+    </label>
+    <div id="hotkeyStatus" style="color: #d13438; font-size: 12px; margin-top: 4px;"></div>
+  </div>
+
+  <div style="margin-bottom: 16px;">
+    <label style="display: flex; align-items: center; gap: 8px;">
+      <input type="checkbox" id="startupEnabled">
+      <span id="startupLabel">スタートアップに登録</span>
+    </label>
+  </div>
+  
+  <div class="description" id="description">
+    コンテキストメニューに表示するデバイスを設定します。
+  </div>
+
+  <div class="table-container">
+    <div class="table-header">
+      <div id="deviceNameHeader">デバイス名</div>
+      <div id="visibleHeader" style="text-align: center;">表示</div>
+      <div id="displayNameHeader">表示名</div>
+      <div id="hotkeyHeader">ホットキー</div>
+    </div>
+    <div class="table-body" id="deviceList"></div>
+  </div>
+
+  <div class="footer">
+    <div>
+      <button id="refreshBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M1 4v6h6M23 20v-6h-6"></path>
+          <path d="M20.49 9A9 9 0 0 0 5.64 5.64M3.51 15A9 9 0 0 0 18.36 18.36"></path>
+        </svg>
+        <span id="refreshBtnText">更新</span>
+      </button>
+    </div>
+    <div class="right-actions">
+      <button id="saveBtn"><span id="saveBtnText">保存して閉じる</span></button>
+      <button id="closeBtn" class="secondary"><span id="closeBtnText">閉じる</span></button>
+    </div>
+  </div>
+  <div id="status"></div>
+
+  <script>
+    let devices = [];
+    let texts = {
+      title: '設定',
+      description: 'コンテキストメニューに表示するデバイスを設定します。',
+      hotkeysLabel: 'Ctrl+Alt+上下キーでデバイスを選択',
+      startupLabel: 'スタートアップに登録',
+      deviceNameHeader: 'デバイス名',
+      visibleHeader: '表示',
+      displayNameHeader: '表示名',
+      hotkeyHeader: 'ホットキー',
+      refresh: '更新',
+      saveAndClose: '保存して閉じる',
+      close: '閉じる',
+      noDevices: 'デバイスが見つかりません。',
+      saved: '設定を保存しました。',
+      refreshed: 'デバイス一覧を更新しました。',
+    };
+
+    function t(key) {
+      return texts[key] || key;
+    }
+
+    function applyLocaleTexts() {
+      document.getElementById('pageTitle').textContent = t('title');
+      document.title = t('title');
+      document.getElementById('description').textContent = t('description');
+      document.getElementById('hotkeysLabel').textContent = t('hotkeysLabel');
+      document.getElementById('startupLabel').textContent = t('startupLabel');
+      document.getElementById('deviceNameHeader').textContent = t('deviceNameHeader');
+      document.getElementById('visibleHeader').textContent = t('visibleHeader');
+      document.getElementById('displayNameHeader').textContent = t('displayNameHeader');
+      document.getElementById('hotkeyHeader').textContent = t('hotkeyHeader');
+      document.getElementById('refreshBtnText').textContent = t('refresh');
+      document.getElementById('saveBtnText').textContent = t('saveAndClose');
+      document.getElementById('closeBtnText').textContent = t('close');
+    }
+
+    function escapeHtml(value) {
+      return value
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function renderDeviceList() {
+      const container = document.getElementById('deviceList');
+      if (!devices.length) {
+        container.innerHTML = `<div style="padding: 16px; text-align: center; color: #999;">${t('noDevices')}</div>`;
+        return;
+      }
+
+      container.innerHTML = devices.map(device => {
+        const title = escapeHtml(device.name || '(不明なデバイス)');
+        const aliasValue = escapeHtml(device.alias || '');
+        const hotkeyValue = device.hotkey || 'なし';
+        const missingClass = device.available ? '' : ' missing';
+        const displayName = device.available ? title : `${title} (未接続)`;
+
+        const hotkeyOptions = [
+          { value: 'なし', label: 'なし' },
+          { value: 'Ctrl+Alt+Home', label: 'Ctrl+Alt+Home' },
+          { value: 'Ctrl+Alt+End', label: 'Ctrl+Alt+End' },
+          { value: 'Ctrl+Alt+PageUp', label: 'Ctrl+Alt+PageUp' },
+          { value: 'Ctrl+Alt+PageDown', label: 'Ctrl+Alt+PageDown' }
+        ];
+
+        const hotkeySelect = `<select class="hotkey-select" data-device-id="${device.id}">
+          ${hotkeyOptions.map(option => `<option value="${option.value}" ${option.value === hotkeyValue ? 'selected' : ''}>${option.label}</option>`).join('')}
+        </select>`;
+
+        return `
+          <div class="table-row${missingClass}" data-device-id="${device.id}">
+            <div class="device-name${!device.available ? ' unavailable' : ''}">${displayName}</div>
+            <div class="checkbox-col">
+              <input type="checkbox" class="hide-checkbox" ${!device.hidden ? 'checked' : ''}>
+            </div>
+            <div class="alias-col">
+              <input type="text" class="alias-input" value="${aliasValue}" placeholder="${title}">
+            </div>
+            <div class="hotkey-col">
+              ${hotkeySelect}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function handleHotkeyChange(changedSelect) {
+      const selectedValue = changedSelect.value;
+      if (selectedValue === 'なし') return;
+
+      // 他のselectで同じ値が選択されているものを"なし"に
+      const allSelects = document.querySelectorAll('.hotkey-select');
+      allSelects.forEach(select => {
+        if (select !== changedSelect && select.value === selectedValue) {
+          select.value = 'なし';
+        }
+      });
+    }
+
+    // イベントリスナーを設定
+    document.addEventListener('change', (event) => {
+      if (event.target.classList.contains('hotkey-select')) {
+        handleHotkeyChange(event.target);
+      }
+    });
+
+    async function loadSettings() {
+      const result = await window.settingsAPI.getSettings();
+      if (result.texts && typeof result.texts === 'object') {
+        texts = result.texts;
+      }
+      applyLocaleTexts();
+      devices = result.devices || [];
+      document.getElementById('hotkeysEnabled').checked = result.hotkeysEnabled || false;
+      document.getElementById('startupEnabled').checked = result.startupEnabled || false;
+      renderDeviceList();
+      document.getElementById('status').textContent = '';
+      document.getElementById('hotkeyStatus').textContent = '';
+    }
+
+    async function saveSettings() {
+      try {
+        const rows = Array.from(document.querySelectorAll('.table-row'));
+        const updates = rows.map(row => {
+          const id = row.dataset.deviceId;
+          const visible = row.querySelector('.hide-checkbox').checked;
+          const alias = row.querySelector('.alias-input').value.trim();
+          const hotkey = row.querySelector('.hotkey-select').value;
+          return { id, hidden: !visible, alias, hotkey };
+        });
+        updates.hotkeysEnabled = document.getElementById('hotkeysEnabled').checked;
+        updates.startupEnabled = document.getElementById('startupEnabled').checked;
+
+        await window.settingsAPI.updateSettings(updates);
+        document.getElementById('status').textContent = t('saved');
+      } catch (err) {
+        document.getElementById('status').textContent = '保存エラー: ' + (err && err.message ? err.message : String(err));
+      }
+    }
+
+    async function refreshDevices() {
+      const result = await window.settingsAPI.refreshSettings();
+      devices = result.devices || [];
+      renderDeviceList();
+      document.getElementById('status').textContent = t('refreshed');
+    }
+
+    window.settingsAPI.onRefreshRequest(() => {
+      refreshDevices();
+    });
+
+    window.settingsAPI.onHotkeyConflict((_event, message) => {
+      document.getElementById('hotkeyStatus').textContent = message;
+    });
+
+    document.getElementById('refreshBtn').addEventListener('click', () => refreshDevices());
+    document.getElementById('saveBtn').addEventListener('click', async () => {
+      await saveSettings();
+      window.close();
+    });
+    document.getElementById('closeBtn').addEventListener('click', () => window.close());
+
+    (async () => {
+      try {
+        await loadSettings();
+      } catch (err) {
+        document.getElementById('status').textContent = '読み込みエラー: ' + (err && err.message ? err.message : String(err));
+      }
+    })();
+  </script>
+</body>
+</html>

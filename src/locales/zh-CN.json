@@ -1,0 +1,22 @@
+{
+  "audioOutputSwitch": "音频输出选择器",
+  "settings": "设置...",
+  "exit": "退出",
+  "noVisibleDevices": "没有可见的设备",
+  "deviceFetchFailed": "获取设备失败",
+  "tooltipPrefix": "音频输出：",
+  "audioOutputChanged": "音频输出：{{device}}",
+  "deviceDisconnected": "设备未连接：{{device}}",
+  "refresh": "刷新",
+  "saveAndClose": "保存并关闭",
+  "close": "关闭",
+  "title": "设置",
+  "description": "配置在上下文菜单中显示的设备。",
+  "hotkeysLabel": "使用 Ctrl+Alt+方向键切换设备",
+  "startupLabel": "启动时运行",
+  "deviceNameHeader": "设备名称",
+  "visibleHeader": "可见",
+  "displayNameHeader": "显示名称",  "hotkeyHeader": "热键",  "noDevices": "找不到设备。",
+  "saved": "设置已保存。",
+  "refreshed": "设备列表已更新。"
+}
