@@ -31,6 +31,7 @@ let currentMenu = null;
 let currentMenuSignature = null;
 let refreshInProgress = false;
 let currentLocale = 'en';
+const HOTKEY_NONE_VALUE = '__none__';
 const selector = new AudioSelector();
 const popup = new TrayPopup();
 
@@ -134,18 +135,18 @@ function loadDeviceSettings() {
     deviceSettings.startupEnabled = false;
   }
 
-  // Ensure each device has hotkey
+  // Ensure each device has a normalized hotkey value.
   Object.keys(deviceSettings.devices).forEach(id => {
     if (!deviceSettings.devices[id].hotkey) {
-      deviceSettings.devices[id].hotkey = 'なし';
+      deviceSettings.devices[id].hotkey = HOTKEY_NONE_VALUE;
     } else {
-      // Normalize old hotkey values
-      let hotkey = deviceSettings.devices[id].hotkey;
+      let hotkey = String(deviceSettings.devices[id].hotkey || '');
+      // Normalize old accelerator spellings.
       if (hotkey === 'Ctrl+Alt+pgup') hotkey = 'Ctrl+Alt+PageUp';
       if (hotkey === 'Ctrl+Alt+pgdn') hotkey = 'Ctrl+Alt+PageDown';
       if (hotkey === 'Ctrl+Alt+home') hotkey = 'Ctrl+Alt+Home';
       if (hotkey === 'Ctrl+Alt+end') hotkey = 'Ctrl+Alt+End';
-      deviceSettings.devices[id].hotkey = hotkey;
+      deviceSettings.devices[id].hotkey = hotkey || HOTKEY_NONE_VALUE;
     }
   });
 
@@ -170,14 +171,14 @@ function getMergedDeviceList(currentDevices) {
   const merged = [];
   mergedIds.forEach(id => {
     const current = currentMap.get(id);
-    const settings = deviceSettings.devices[id] || { alias: '', hidden: false, hotkey: 'なし' };
+    const settings = deviceSettings.devices[id] || { alias: '', hidden: false, hotkey: HOTKEY_NONE_VALUE };
     const name = current ? current.name : (settings.alias || '不明なデバイス');
     merged.push({
       id,
       name,
       alias: settings.alias || '',
       hidden: Boolean(settings.hidden),
-      hotkey: settings.hotkey || 'なし',
+      hotkey: settings.hotkey || HOTKEY_NONE_VALUE,
       available: Boolean(current),
     });
   });
@@ -196,6 +197,7 @@ function getSettingsTexts() {
     visibleHeader: i18n.t('visibleHeader'),
     displayNameHeader: i18n.t('displayNameHeader'),
     hotkeyHeader: i18n.t('hotkeyHeader'),
+    noneHotkey: i18n.t('noneHotkey'),
     refresh: i18n.t('refresh'),
     saveAndClose: i18n.t('saveAndClose'),
     close: i18n.t('close'),
@@ -278,7 +280,7 @@ async function setupHotkeys() {
   // Register individual hotkeys
   availableDevices.forEach(device => {
     let hotkey = device.hotkey;
-    if (hotkey && hotkey !== 'なし') {
+    if (hotkey && hotkey !== HOTKEY_NONE_VALUE) {
       // Normalize hotkey strings
       hotkey = hotkey.replace('pgup', 'PageUp').replace('pgdn', 'PageDown');
       if (globalShortcut.isRegistered(hotkey)) {
@@ -485,17 +487,17 @@ ipcMain.handle('settings:update', async (_event, updates) => {
   deviceUpdates.forEach(update => {
     const id = update.id;
     if (!deviceSettings.devices[id]) {
-      deviceSettings.devices[id] = { alias: '', hidden: false, hotkey: 'なし' };
+      deviceSettings.devices[id] = { alias: '', hidden: false, hotkey: HOTKEY_NONE_VALUE };
     }
     deviceSettings.devices[id].hidden = Boolean(update.hidden);
     deviceSettings.devices[id].alias = String(update.alias || '').trim();
-    let hotkey = String(update.hotkey || 'なし');
-    // Normalize hotkey
+    let hotkey = String(update.hotkey || HOTKEY_NONE_VALUE);
+    // Normalize hotkey.
     if (hotkey === 'Ctrl+Alt+pgup') hotkey = 'Ctrl+Alt+PageUp';
     if (hotkey === 'Ctrl+Alt+pgdn') hotkey = 'Ctrl+Alt+PageDown';
     if (hotkey === 'Ctrl+Alt+home') hotkey = 'Ctrl+Alt+Home';
     if (hotkey === 'Ctrl+Alt+end') hotkey = 'Ctrl+Alt+End';
-    deviceSettings.devices[id].hotkey = hotkey;
+    deviceSettings.devices[id].hotkey = hotkey || HOTKEY_NONE_VALUE;
   });
 
   if (updates.hotkeysEnabled !== undefined) {

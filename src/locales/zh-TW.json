@@ -18,6 +18,7 @@
   "visibleHeader": "可見",
   "displayNameHeader": "顯示名稱",
   "hotkeyHeader": "熱鍵",
+  "noneHotkey": "無",
   "noDevices": "找不到裝置。",
   "saved": "設定已儲存。",
   "refreshed": "裝置清單已更新。"

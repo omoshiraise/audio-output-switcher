@@ -18,6 +18,7 @@
   "visibleHeader": "Visibile",
   "displayNameHeader": "Nome visualizzato",
   "hotkeyHeader": "Scorciatoia",
+  "noneHotkey": "Nessuno",
   "noDevices": "Nessun dispositivo trovato.",
   "saved": "Impostazioni salvate.",
   "refreshed": "Elenco dispositivi aggiornato."

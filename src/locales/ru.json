@@ -18,6 +18,7 @@
   "visibleHeader": "Видимо",
   "displayNameHeader": "Отображаемое имя",
   "hotkeyHeader": "Горячая клавиша",
+  "noneHotkey": "Нет",
   "noDevices": "Устройства не найдены.",
   "saved": "Параметры сохранены.",
   "refreshed": "Список устройств обновлен."

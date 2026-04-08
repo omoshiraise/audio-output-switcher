@@ -18,6 +18,7 @@
   "visibleHeader": "Visible",
   "displayNameHeader": "Display name",
   "hotkeyHeader": "Hotkey",
+  "noneHotkey": "None",
   "noDevices": "No devices found.",
   "saved": "Settings saved.",
   "refreshed": "Device list updated."

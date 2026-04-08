@@ -18,6 +18,7 @@
   "visibleHeader": "Sichtbar",
   "displayNameHeader": "Anzeigename",
   "hotkeyHeader": "Tastenkombination",
+  "noneHotkey": "Keine",
   "noDevices": "Keine Geräte gefunden.",
   "saved": "Einstellungen gespeichert.",
   "refreshed": "Geräteliste aktualisiert."

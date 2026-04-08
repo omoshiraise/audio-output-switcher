@@ -154,11 +154,11 @@
   </style>
 </head>
 <body>
-  <h1 id="pageTitle">設定</h1>
+  <h1 id="pageTitle"></h1>
   <div style="margin-top: 16px;">
     <label style="display: flex; align-items: center; gap: 8px;">
       <input type="checkbox" id="hotkeysEnabled">
-      <span id="hotkeysLabel">Ctrl+Alt+矢印キーでデバイスを選択</span>
+      <span id="hotkeysLabel"></span>
     </label>
     <div id="hotkeyStatus" style="color: #d13438; font-size: 12px; margin-top: 4px;"></div>
   </div>
@@ -166,20 +166,20 @@
   <div style="margin-bottom: 16px;">
     <label style="display: flex; align-items: center; gap: 8px;">
       <input type="checkbox" id="startupEnabled">
-      <span id="startupLabel">スタートアップに登録</span>
+      <span id="startupLabel"></span>
     </label>
   </div>
   
   <div class="description" id="description">
-    コンテキストメニューに表示するデバイスを設定します。
+    
   </div>
 
   <div class="table-container">
     <div class="table-header">
-      <div id="deviceNameHeader">デバイス名</div>
-      <div id="visibleHeader" style="text-align: center;">表示</div>
-      <div id="displayNameHeader">表示名</div>
-      <div id="hotkeyHeader">ホットキー</div>
+      <div id="deviceNameHeader"></div>
+      <div id="visibleHeader" style="text-align: center;"></div>
+      <div id="displayNameHeader"></div>
+      <div id="hotkeyHeader"></div>
     </div>
     <div class="table-body" id="deviceList"></div>
   </div>
@@ -191,18 +191,19 @@
           <path d="M1 4v6h6M23 20v-6h-6"></path>
           <path d="M20.49 9A9 9 0 0 0 5.64 5.64M3.51 15A9 9 0 0 0 18.36 18.36"></path>
         </svg>
-        <span id="refreshBtnText">更新</span>
+        <span id="refreshBtnText"></span>
       </button>
     </div>
     <div class="right-actions">
-      <button id="saveBtn"><span id="saveBtnText">保存して閉じる</span></button>
-      <button id="closeBtn" class="secondary"><span id="closeBtnText">閉じる</span></button>
+      <button id="saveBtn"><span id="saveBtnText"></span></button>
+      <button id="closeBtn" class="secondary"><span id="closeBtnText"></span></button>
     </div>
   </div>
   <div id="status"></div>
 
   <script>
     let devices = [];
+    const HOTKEY_NONE_VALUE = '__none__';
     let texts = {
       title: '設定',
       description: 'コンテキストメニューに表示するデバイスを設定します。',
@@ -215,6 +216,7 @@
       refresh: '更新',
       saveAndClose: '保存して閉じる',
       close: '閉じる',
+      noneHotkey: 'なし',
       noDevices: 'デバイスが見つかりません。',
       saved: '設定を保存しました。',
       refreshed: 'デバイス一覧を更新しました。',
@@ -258,12 +260,12 @@
       container.innerHTML = devices.map(device => {
         const title = escapeHtml(device.name || '(不明なデバイス)');
         const aliasValue = escapeHtml(device.alias || '');
-        const hotkeyValue = device.hotkey || 'なし';
+        const hotkeyValue = device.hotkey || HOTKEY_NONE_VALUE;
         const missingClass = device.available ? '' : ' missing';
         const displayName = device.available ? title : `${title} (未接続)`;
 
         const hotkeyOptions = [
-          { value: 'なし', label: 'なし' },
+          { value: HOTKEY_NONE_VALUE, label: t('noneHotkey') },
           { value: 'Ctrl+Alt+Home', label: 'Ctrl+Alt+Home' },
           { value: 'Ctrl+Alt+End', label: 'Ctrl+Alt+End' },
           { value: 'Ctrl+Alt+PageUp', label: 'Ctrl+Alt+PageUp' },
@@ -293,13 +295,13 @@
 
     function handleHotkeyChange(changedSelect) {
       const selectedValue = changedSelect.value;
-      if (selectedValue === 'なし') return;
+      if (selectedValue === HOTKEY_NONE_VALUE) return;
 
       // 他のselectで同じ値が選択されているものを"なし"に
       const allSelects = document.querySelectorAll('.hotkey-select');
       allSelects.forEach(select => {
         if (select !== changedSelect && select.value === selectedValue) {
-          select.value = 'なし';
+          select.value = HOTKEY_NONE_VALUE;
         }
       });
     }

@@ -18,6 +18,7 @@
   "visibleHeader": "Visível",
   "displayNameHeader": "Nome para exibição",
   "hotkeyHeader": "Atalho",
+  "noneHotkey": "Nenhum",
   "noDevices": "Nenhum dispositivo encontrado.",
   "saved": "Configurações salvas.",
   "refreshed": "Lista de dispositivos atualizada."

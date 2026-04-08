@@ -18,6 +18,7 @@
   "visibleHeader": "표시",
   "displayNameHeader": "표시 이름",
   "hotkeyHeader": "단축키",
+  "noneHotkey": "없음",
   "noDevices": "장치를 찾을 수 없습니다.",
   "saved": "설정이 저장되었습니다.",
   "refreshed": "장치 목록이 업데이트되었습니다."

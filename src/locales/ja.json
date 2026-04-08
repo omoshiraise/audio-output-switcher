@@ -18,6 +18,7 @@
   "visibleHeader": "表示",
   "displayNameHeader": "表示名",
   "hotkeyHeader": "ホットキー",
+  "noneHotkey": "なし",
   "noDevices": "デバイスが見つかりません。",
   "saved": "設定を保存しました。",
   "refreshed": "デバイス一覧を更新しました。"

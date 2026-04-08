@@ -16,7 +16,10 @@
   "startupLabel": "启动时运行",
   "deviceNameHeader": "设备名称",
   "visibleHeader": "可见",
-  "displayNameHeader": "显示名称",  "hotkeyHeader": "热键",  "noDevices": "找不到设备。",
+  "displayNameHeader": "显示名称",
+  "hotkeyHeader": "热键",
+  "noneHotkey": "无",
+  "noDevices": "找不到设备。",
   "saved": "设置已保存。",
   "refreshed": "设备列表已更新。"
 }

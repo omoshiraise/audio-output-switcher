@@ -18,6 +18,7 @@
   "visibleHeader": "Visible",
   "displayNameHeader": "Nom d'affichage",
   "hotkeyHeader": "Raccourci",
+  "noneHotkey": "Aucun",
   "noDevices": "Aucun appareil trouvé.",
   "saved": "Paramètres enregistrés.",
   "refreshed": "Liste des appareils mise à jour."
