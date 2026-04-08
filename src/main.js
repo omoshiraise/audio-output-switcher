@@ -452,6 +452,7 @@ async function refreshMenuIfChanged() {
 }
 
 ipcMain.handle('settings:get', async () => {
+  loadDeviceSettings();
   let result;
   try {
     result = await selector.EnumAudioDevice();
@@ -477,7 +478,11 @@ ipcMain.handle('settings:refresh', async () => {
 
 ipcMain.handle('settings:update', async (_event, updates) => {
   loadDeviceSettings();
-  updates.forEach(update => {
+  const deviceUpdates = Array.isArray(updates)
+    ? updates
+    : (Array.isArray(updates && updates.deviceUpdates) ? updates.deviceUpdates : []);
+
+  deviceUpdates.forEach(update => {
     const id = update.id;
     if (!deviceSettings.devices[id]) {
       deviceSettings.devices[id] = { alias: '', hidden: false, hotkey: 'なし' };
@@ -492,6 +497,7 @@ ipcMain.handle('settings:update', async (_event, updates) => {
     if (hotkey === 'Ctrl+Alt+end') hotkey = 'Ctrl+Alt+End';
     deviceSettings.devices[id].hotkey = hotkey;
   });
+
   if (updates.hotkeysEnabled !== undefined) {
     deviceSettings.hotkeysEnabled = Boolean(updates.hotkeysEnabled);
   }

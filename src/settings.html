@@ -328,17 +328,20 @@
     async function saveSettings() {
       try {
         const rows = Array.from(document.querySelectorAll('.table-row'));
-        const updates = rows.map(row => {
+        const deviceUpdates = rows.map(row => {
           const id = row.dataset.deviceId;
           const visible = row.querySelector('.hide-checkbox').checked;
           const alias = row.querySelector('.alias-input').value.trim();
           const hotkey = row.querySelector('.hotkey-select').value;
           return { id, hidden: !visible, alias, hotkey };
         });
-        updates.hotkeysEnabled = document.getElementById('hotkeysEnabled').checked;
-        updates.startupEnabled = document.getElementById('startupEnabled').checked;
+        const payload = {
+          deviceUpdates,
+          hotkeysEnabled: document.getElementById('hotkeysEnabled').checked,
+          startupEnabled: document.getElementById('startupEnabled').checked,
+        };
 
-        await window.settingsAPI.updateSettings(updates);
+        await window.settingsAPI.updateSettings(payload);
         document.getElementById('status').textContent = t('saved');
       } catch (err) {
         document.getElementById('status').textContent = '保存エラー: ' + (err && err.message ? err.message : String(err));
