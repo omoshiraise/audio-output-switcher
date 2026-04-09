@@ -25,8 +25,8 @@ You can still assign hotkeys to hidden devices, which is useful when you want to
 
 ## Notes
 
-- If PowerShell execution policy is restricted in your environment,
-  set the execution policy to `Bypass` or use signed scripts.
+- Depending on your environment (for example, a corporate-managed endpoint),
+  the app may not work due to PowerShell execution restrictions.
 
 ## Installation
 
@@ -48,6 +48,7 @@ The built installer will be generated in the `out/make/` directory.
 ## Usage
 
 1. When you launch the app, a tray icon will appear.
+  - We recommend enabling it in Settings > Taskbar > Other system tray icons to keep it visible.
 2. Click the tray icon to open the context menu.
 3. Select the device you want to switch to.
 4. To change settings, select "Settings...".
