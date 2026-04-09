@@ -48,7 +48,7 @@ The built installer will be generated in the `out/make/` directory.
 ## Usage
 
 1. When you launch the app, a tray icon will appear.
-  - We recommend enabling it in Settings > Taskbar > Other system tray icons to keep it visible.
+  - We recommend enabling it in Windows Settings > Personalization > Taskbar > Other system tray icons to keep it visible.
 2. Click the tray icon to open the context menu.
 3. Select the device you want to switch to.
 4. To change settings, select "Settings...".
