@@ -1,5 +1,5 @@
 {
-  "audioOutputSwitch": "Audioausgabe-Wähler",
+  "aboutMenuLabel": "Über {{appName}}...",
   "settings": "Einstellungen...",
   "exit": "Beenden",
   "noVisibleDevices": "Keine sichtbaren Geräte",
@@ -21,5 +21,13 @@
   "noneHotkey": "Keine",
   "noDevices": "Keine Geräte gefunden.",
   "saved": "Einstellungen gespeichert.",
-  "refreshed": "Geräteliste aktualisiert."
+  "refreshed": "Geräteliste aktualisiert.",
+  "aboutTitle": "Über",
+  "versionLabel": "Version",
+  "packageHeader": "Paket",
+  "licenseHeader": "Lizenz",
+  "repositoryHeader": "Repository",
+  "ossNotice": "Diese App verwendet die folgende Open-Source-Software.",
+  "noLicenses": "Keine Lizenzinformationen gefunden.",
+  "aboutLoadError": "Fehler beim Laden der About-Informationen"
 }

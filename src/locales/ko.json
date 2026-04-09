@@ -1,5 +1,5 @@
 {
-  "audioOutputSwitch": "오디오 출력 선택기",
+  "aboutMenuLabel": "{{appName}} 정보...",
   "settings": "설정...",
   "exit": "끝내기",
   "noVisibleDevices": "표시할 수 있는 장치가 없습니다",
@@ -21,5 +21,13 @@
   "noneHotkey": "없음",
   "noDevices": "장치를 찾을 수 없습니다.",
   "saved": "설정이 저장되었습니다.",
-  "refreshed": "장치 목록이 업데이트되었습니다."
+  "refreshed": "장치 목록이 업데이트되었습니다.",
+  "aboutTitle": "정보",
+  "versionLabel": "버전",
+  "packageHeader": "패키지",
+  "licenseHeader": "라이선스",
+  "repositoryHeader": "리포지토리",
+  "ossNotice": "이 앱은 다음 오픈 소스 소프트웨어를 사용합니다.",
+  "noLicenses": "라이선스 정보를 찾을 수 없습니다.",
+  "aboutLoadError": "정보 화면을 불러오지 못했습니다"
 }

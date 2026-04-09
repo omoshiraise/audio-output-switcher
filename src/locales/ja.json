@@ -1,5 +1,5 @@
 {
-  "audioOutputSwitch": "オーディオ出力スイッチャー",
+  "aboutMenuLabel": "{{appName}} について...",
   "settings": "設定...",
   "exit": "終了",
   "noVisibleDevices": "表示可能なデバイスがありません",
@@ -21,5 +21,13 @@
   "noneHotkey": "なし",
   "noDevices": "デバイスが見つかりません。",
   "saved": "設定を保存しました。",
-  "refreshed": "デバイス一覧を更新しました。"
+  "refreshed": "デバイス一覧を更新しました。",
+  "aboutTitle": "About",
+  "versionLabel": "バージョン",
+  "packageHeader": "パッケージ",
+  "licenseHeader": "ライセンス",
+  "repositoryHeader": "リポジトリ",
+  "ossNotice": "以下のOSSを使用しています。",
+  "noLicenses": "ライセンス情報が見つかりません。",
+  "aboutLoadError": "About情報の読み込みに失敗しました"
 }

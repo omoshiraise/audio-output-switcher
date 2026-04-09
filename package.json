@@ -1,16 +1,17 @@
 {
   "name": "audio-output-switcher",
   "productName": "Audio Output Switcher",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Audio Output Device Switcher for Windows 10/11",
   "main": "src/main.js",
   "private": true,
   "scripts": {
     "start": "electron-forge start",
     "package": "electron-forge package",
-    "make": "electron-forge make",
+    "make": "npm run check-licenses && electron-forge make",
     "publish": "electron-forge publish",
-    "lint": "echo \"No linting configured\""
+    "lint": "echo \"No linting configured\"",
+    "check-licenses": "node scripts/generate-licenses.js"
   },
   "keywords": [],
   "author": {
@@ -31,6 +32,7 @@
     "@electron-forge/plugin-auto-unpack-natives": "^7.11.1",
     "@electron-forge/plugin-fuses": "^7.11.1",
     "@electron/fuses": "^1.8.0",
-    "electron": "41.1.1"
+    "electron": "41.1.1",
+    "license-checker-rseidelsohn": "^4.4.2"
   }
 }

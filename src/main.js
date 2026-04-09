@@ -19,6 +19,10 @@ if (!gotLock) {
 app.on('second-instance', () => {
   if (settingsWindow && !settingsWindow.isDestroyed()) {
     settingsWindow.focus();
+    return;
+  }
+  if (aboutWindow && !aboutWindow.isDestroyed()) {
+    aboutWindow.focus();
   }
 });
 
@@ -26,6 +30,7 @@ app.on('window-all-closed', () => {});
 
 let tray = null;
 let settingsWindow = null;
+let aboutWindow = null;
 let deviceSettings = null;
 let currentMenu = null;
 let currentMenuSignature = null;
@@ -207,6 +212,46 @@ function getSettingsTexts() {
   };
 }
 
+function getAboutTexts() {
+  return {
+    aboutTitle: i18n.t('aboutTitle'),
+    version: i18n.t('versionLabel'),
+    packageHeader: i18n.t('packageHeader'),
+    licenseHeader: i18n.t('licenseHeader'),
+    repositoryHeader: i18n.t('repositoryHeader'),
+    ossNotice: i18n.t('ossNotice'),
+    noLicenses: i18n.t('noLicenses'),
+    close: i18n.t('close'),
+    loadError: i18n.t('aboutLoadError'),
+  };
+}
+
+function getLicensesFilePath() {
+  return path.join(__dirname, '..', 'licenses.json');
+}
+
+function readLicenseEntries() {
+  const licensePath = getLicensesFilePath();
+  if (!fs.existsSync(licensePath)) {
+    return [];
+  }
+
+  try {
+    const raw = fs.readFileSync(licensePath, 'utf8');
+    const parsed = JSON.parse(raw);
+    return Object.entries(parsed)
+      .map(([packageName, details]) => ({
+        packageName,
+        licenses: details && details.licenses ? String(details.licenses) : 'Unknown',
+        repository: details && details.repository ? String(details.repository) : '',
+      }))
+      .sort((a, b) => a.packageName.localeCompare(b.packageName, 'en'));
+  } catch (err) {
+    console.error('Failed to parse licenses.json:', err);
+    return [];
+  }
+}
+
 function openSettingsWindow() {
   if (settingsWindow && !settingsWindow.isDestroyed()) {
     settingsWindow.focus();
@@ -239,6 +284,41 @@ function openSettingsWindow() {
 
   settingsWindow.on('closed', () => {
     settingsWindow = null;
+  });
+}
+
+function openAboutWindow() {
+  if (aboutWindow && !aboutWindow.isDestroyed()) {
+    aboutWindow.focus();
+    return;
+  }
+
+  const aboutWindowTitle = `${app.getName()} v${app.getVersion()}`;
+
+  aboutWindow = new BrowserWindow({
+    width: 620,
+    height: 680,
+    resizable: false,
+    minimizable: false,
+    maximizable: false,
+    title: aboutWindowTitle,
+    webPreferences: {
+      preload: path.join(__dirname, 'about-preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: false,
+    },
+  });
+
+  aboutWindow.setMenu(null);
+  aboutWindow.loadFile(path.join(__dirname, 'about.html')).catch(err => {
+    console.error('Failed to load about.html:', err);
+    aboutWindow.close();
+    aboutWindow = null;
+  });
+
+  aboutWindow.on('closed', () => {
+    aboutWindow = null;
   });
 }
 
@@ -404,7 +484,7 @@ async function buildMenuTemplate() {
   });
 
   const menu = [
-    { label: `🔊 ${i18n.t('audioOutputSwitch')}`, enabled: false },
+    { label: i18n.t('aboutMenuLabel', { appName: app.getName() }), click: openAboutWindow },
     { label: i18n.t('settings'), click: openSettingsWindow },
     { type: 'separator' },
   ];
@@ -512,6 +592,15 @@ ipcMain.handle('settings:update', async (_event, updates) => {
   await setupHotkeys();
   await refreshMenu();
   return { success: true };
+});
+
+ipcMain.handle('about:get', async () => {
+  return {
+    appName: app.getName(),
+    version: app.getVersion(),
+    licenses: readLicenseEntries(),
+    texts: getAboutTexts(),
+  };
 });
 
 app.whenReady().then(async () => {

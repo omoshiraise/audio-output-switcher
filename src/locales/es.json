@@ -1,5 +1,5 @@
 {
-  "audioOutputSwitch": "Selector de salida de audio",
+  "aboutMenuLabel": "Acerca de {{appName}}...",
   "settings": "Configuración...",
   "exit": "Salir",
   "noVisibleDevices": "Sin dispositivos visibles",
@@ -21,5 +21,13 @@
   "noneHotkey": "Ninguno",
   "noDevices": "No se encontraron dispositivos.",
   "saved": "Configuración guardada.",
-  "refreshed": "Lista de dispositivos actualizada."
+  "refreshed": "Lista de dispositivos actualizada.",
+  "aboutTitle": "Acerca de",
+  "versionLabel": "Versión",
+  "packageHeader": "Paquete",
+  "licenseHeader": "Licencia",
+  "repositoryHeader": "Repositorio",
+  "ossNotice": "Esta aplicación utiliza el siguiente software de código abierto.",
+  "noLicenses": "No se encontraron datos de licencias.",
+  "aboutLoadError": "No se pudo cargar la información de Acerca de"
 }

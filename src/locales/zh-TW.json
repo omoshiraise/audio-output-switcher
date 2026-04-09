@@ -1,5 +1,5 @@
 {
-  "audioOutputSwitch": "音訊輸出選擇器",
+  "aboutMenuLabel": "關於 {{appName}}...",
   "settings": "設定...",
   "exit": "結束",
   "noVisibleDevices": "沒有可見的裝置",
@@ -21,5 +21,13 @@
   "noneHotkey": "無",
   "noDevices": "找不到裝置。",
   "saved": "設定已儲存。",
-  "refreshed": "裝置清單已更新。"
+  "refreshed": "裝置清單已更新。",
+  "aboutTitle": "關於",
+  "versionLabel": "版本",
+  "packageHeader": "套件",
+  "licenseHeader": "授權",
+  "repositoryHeader": "儲存庫",
+  "ossNotice": "此應用程式使用以下開源軟體。",
+  "noLicenses": "找不到授權資訊。",
+  "aboutLoadError": "載入「關於」資訊失敗"
 }

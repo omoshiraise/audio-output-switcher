@@ -1,5 +1,5 @@
 {
-  "audioOutputSwitch": "Audio Output Switcher",
+  "aboutMenuLabel": "About {{appName}}...",
   "settings": "Settings...",
   "exit": "Quit",
   "noVisibleDevices": "No visible devices",
@@ -21,5 +21,13 @@
   "noneHotkey": "None",
   "noDevices": "No devices found.",
   "saved": "Settings saved.",
-  "refreshed": "Device list updated."
+  "refreshed": "Device list updated.",
+  "aboutTitle": "About",
+  "versionLabel": "Version",
+  "packageHeader": "Package",
+  "licenseHeader": "License",
+  "repositoryHeader": "Repository",
+  "ossNotice": "This app uses the following OSS.",
+  "noLicenses": "No license data found.",
+  "aboutLoadError": "Failed to load about information"
 }

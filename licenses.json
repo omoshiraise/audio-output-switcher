@@ -1,0 +1,30 @@
+{
+    "@babel/runtime@7.29.2": {
+        "licenses": "MIT",
+        "repository": "https://github.com/babel/babel"
+    },
+    "debug@2.6.9": {
+        "licenses": "MIT",
+        "repository": "https://github.com/visionmedia/debug"
+    },
+    "electron-squirrel-startup@1.0.1": {
+        "licenses": "Apache-2.0",
+        "repository": "https://github.com/mongodb-js/electron-squirrel-startup"
+    },
+    "i18next@26.0.3": {
+        "licenses": "MIT",
+        "repository": "https://github.com/i18next/i18next"
+    },
+    "ms@2.0.0": {
+        "licenses": "MIT",
+        "repository": "https://github.com/zeit/ms"
+    },
+    "typescript@5.4.5": {
+        "licenses": "Apache-2.0",
+        "repository": "https://github.com/Microsoft/TypeScript"
+    },
+    "electron@41.1.1": {
+        "licenses": "MIT",
+        "repository": "https://github.com/electron/electron"
+    }
+}

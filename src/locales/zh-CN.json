@@ -1,5 +1,5 @@
 {
-  "audioOutputSwitch": "音频输出选择器",
+  "aboutMenuLabel": "关于 {{appName}}...",
   "settings": "设置...",
   "exit": "退出",
   "noVisibleDevices": "没有可见的设备",
@@ -21,5 +21,13 @@
   "noneHotkey": "无",
   "noDevices": "找不到设备。",
   "saved": "设置已保存。",
-  "refreshed": "设备列表已更新。"
+  "refreshed": "设备列表已更新。",
+  "aboutTitle": "关于",
+  "versionLabel": "版本",
+  "packageHeader": "软件包",
+  "licenseHeader": "许可证",
+  "repositoryHeader": "仓库",
+  "ossNotice": "本应用使用了以下开源软件。",
+  "noLicenses": "未找到许可证信息。",
+  "aboutLoadError": "加载“关于”信息失败"
 }

@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <title>About</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      padding: 16px;
+      font-family: 'Segoe UI', sans-serif;
+      background: #f5f5f5;
+      color: #222;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 18px;
+      font-weight: 700;
+    }
+    .app-meta {
+      margin-bottom: 12px;
+      font-size: 13px;
+      color: #555;
+      line-height: 1.5;
+    }
+    .oss-notice {
+      margin: 0 0 10px;
+      font-size: 13px;
+      color: #444;
+    }
+    .table-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      border: 1px solid #d1d1d1;
+      border-radius: 8px;
+      background: #fff;
+      margin-bottom: 12px;
+      overflow: hidden;
+      min-height: 0;
+    }
+    .table-header {
+      display: grid;
+      grid-template-columns: 2fr 1fr 120px;
+      gap: 12px;
+      padding: 12px;
+      background: #f0f0f0;
+      border-bottom: 1px solid #d1d1d1;
+      font-weight: 600;
+      font-size: 13px;
+    }
+    .table-body {
+      flex: 1;
+      overflow-y: auto;
+    }
+    .table-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr 120px;
+      gap: 12px;
+      padding: 12px;
+      border-bottom: 1px solid #e0e0e0;
+      align-items: center;
+      font-size: 13px;
+    }
+    .table-row:last-child {
+      border-bottom: none;
+    }
+    .pkg {
+      word-break: break-all;
+    }
+    .repo-link {
+      color: #0078d4;
+      text-decoration: none;
+      word-break: break-all;
+    }
+    .repo-link:hover {
+      text-decoration: underline;
+    }
+    .footer {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 10px;
+    }
+    button {
+      padding: 8px 14px;
+      border: none;
+      border-radius: 6px;
+      background: #0078d4;
+      color: white;
+      font-size: 13px;
+      cursor: pointer;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    button.secondary {
+      background: #e1e1e1;
+      color: #222;
+    }
+    #status {
+      color: #d13438;
+      font-size: 13px;
+      min-height: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1 id="title"></h1>
+  <div class="app-meta">
+    <div><strong id="versionLabel"></strong>: <span id="appVersion"></span></div>
+  </div>
+  <p class="oss-notice" id="ossNotice"></p>
+
+  <div class="table-container">
+    <div class="table-header">
+      <div id="packageHeader"></div>
+      <div id="licenseHeader"></div>
+      <div id="repositoryHeader"></div>
+    </div>
+    <div class="table-body" id="licenseList"></div>
+  </div>
+
+  <div class="footer">
+    <button id="closeBtn" class="secondary"><span id="closeBtnText"></span></button>
+  </div>
+  <div id="status"></div>
+
+  <script>
+    let texts = {
+      aboutTitle: 'About',
+      version: 'Version',
+      packageHeader: 'Package',
+      licenseHeader: 'License',
+      repositoryHeader: 'Repository',
+      ossNotice: 'This app uses the following OSS.',
+      noLicenses: 'No license data found.',
+      close: 'Close',
+      loadError: 'Failed to load about information.',
+    };
+
+    function t(key) {
+      return texts[key] || key;
+    }
+
+    function applyTexts() {
+      document.title = t('aboutTitle');
+      document.getElementById('versionLabel').textContent = t('version');
+      document.getElementById('packageHeader').textContent = t('packageHeader');
+      document.getElementById('licenseHeader').textContent = t('licenseHeader');
+      document.getElementById('repositoryHeader').textContent = t('repositoryHeader');
+      document.getElementById('ossNotice').textContent = t('ossNotice');
+      document.getElementById('closeBtnText').textContent = t('close');
+    }
+
+    function normalizeRepositoryUrl(value) {
+      const url = String(value || '').trim().replace(/^git\+/, '');
+      return /^https?:\/\//i.test(url) ? url : '';
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function renderLicenses(licenses) {
+      const list = document.getElementById('licenseList');
+      if (!Array.isArray(licenses) || licenses.length === 0) {
+        list.innerHTML = `<div style="padding: 16px; text-align: center; color: #999;">${t('noLicenses')}</div>`;
+        return;
+      }
+
+      list.innerHTML = licenses.map(item => {
+        const pkg = escapeHtml(item.packageName || '');
+        const license = escapeHtml(item.licenses || 'Unknown');
+        const repositoryUrl = normalizeRepositoryUrl(item.repository);
+        const repositoryCell = repositoryUrl
+          ? `<a class="repo-link" href="${escapeHtml(repositoryUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(repositoryUrl)}</a>`
+          : '-';
+        return `<div class="table-row"><div class="pkg">${pkg}</div><div>${license}</div><div>${repositoryCell}</div></div>`;
+      }).join('');
+    }
+
+    async function loadAbout() {
+      const result = await window.aboutAPI.getAboutData();
+      if (result.texts && typeof result.texts === 'object') {
+        texts = result.texts;
+      }
+      applyTexts();
+      document.getElementById('title').textContent = result.appName || t('aboutTitle');
+      document.getElementById('appVersion').textContent = result.version || '';
+      renderLicenses(result.licenses || []);
+    }
+
+    document.getElementById('closeBtn').addEventListener('click', () => window.close());
+
+    (async () => {
+      try {
+        await loadAbout();
+      } catch (err) {
+        applyTexts();
+        document.getElementById('status').textContent = `${t('loadError')}: ${err && err.message ? err.message : String(err)}`;
+      }
+    })();
+  </script>
+</body>
+</html>

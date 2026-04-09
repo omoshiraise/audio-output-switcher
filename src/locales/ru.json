@@ -1,5 +1,5 @@
 {
-  "audioOutputSwitch": "Переключатель аудиовыхода",
+  "aboutMenuLabel": "О программе {{appName}}...",
   "settings": "Параметры...",
   "exit": "Выход",
   "noVisibleDevices": "Нет видимых устройств",
@@ -21,5 +21,13 @@
   "noneHotkey": "Нет",
   "noDevices": "Устройства не найдены.",
   "saved": "Параметры сохранены.",
-  "refreshed": "Список устройств обновлен."
+  "refreshed": "Список устройств обновлен.",
+  "aboutTitle": "О программе",
+  "versionLabel": "Версия",
+  "packageHeader": "Пакет",
+  "licenseHeader": "Лицензия",
+  "repositoryHeader": "Репозиторий",
+  "ossNotice": "Это приложение использует следующее ПО с открытым исходным кодом.",
+  "noLicenses": "Сведения о лицензиях не найдены.",
+  "aboutLoadError": "Не удалось загрузить сведения о программе"
 }
