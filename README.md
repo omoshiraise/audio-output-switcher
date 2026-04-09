@@ -20,8 +20,6 @@ You can still assign hotkeys to hidden devices, which is useful when you want to
 - Detect and show hotkey conflicts
 - Optional startup registration
 - Small popup notification (no system notification sound)
-- Persistent settings
-- Automatic updates on device connection/disconnection
 
 ## Notes
 
