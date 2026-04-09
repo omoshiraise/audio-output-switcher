@@ -30,20 +30,7 @@ You can still assign hotkeys to hidden devices, which is useful when you want to
 
 ## Installation
 
-### Running in development
-
-```bash
-npm install
-npm start
-```
-
-### Building
-
-```bash
-npm run make
-```
-
-The built installer will be generated in the `out/make/` directory.
+Run the installer `.exe` file to install the application.
 
 ## Usage
 
@@ -76,6 +63,19 @@ The built installer will be generated in the `out/make/` directory.
 - PowerShell 5.1 or higher
 
 ## Development
+
+### Running in development
+
+```bash
+npm install
+npm start
+```
+
+### Building
+
+```bash
+npm run make
+```
 
 ### Project Structure
 
