@@ -1,9 +1,9 @@
 {
   "name": "audio-output-switcher",
   "productName": "Audio Output Switcher",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Audio Output Device Switcher for Windows 10/11",
-  "main": "src/main.js",
+  "main": "src/main/main.js",
   "private": true,
   "scripts": {
     "start": "electron-forge start",
@@ -20,6 +20,7 @@
   },
   "license": "MIT",
   "dependencies": {
+    "@resvg/resvg-js": "^2.6.2",
     "electron-squirrel-startup": "^1.0.1",
     "i18next": "^26.0.3"
   },

@@ -4,8 +4,8 @@
 
 | ファイル | 役割 |
 |---|---|
-| `audio-selector.js` | `AudioSelector` クラス本体 **(メインプロセス専用)** |
-| `main.js` | トレイアプリのメインエントリ (例) |
+| `main/audio-selector.js` | `AudioSelector` クラス本体 **(メインプロセス専用)** |
+| `main/main.js` | トレイアプリのメインエントリ (例) |
 
 ---
 
@@ -16,7 +16,7 @@
 `AudioSelector` 本体は Node.js 標準モジュール (`child_process`, `fs`, `os`, `path`) のみを使用するため
 npm パッケージの追加は不要です。
 
-### 2. main.js への組み込み
+### 2. main/main.js への組み込み
 
 トレイアプリとして使用する場合：
 
@@ -68,16 +68,16 @@ app.whenReady().then(async () => {
 
 ## このリポジトリでの実装範囲
 
-`AudioSelector` は「デバイス列挙/切替」のみを担当します。以下は `main.js` 側のアプリ実装です。
+`AudioSelector` は「デバイス列挙/切替」のみを担当します。以下は `main/main.js` 側のアプリ実装です。
 
 - トレイメニュー表示
-- 設定画面 (`settings.html`) の表示と保存
+- 設定画面 (`renderer/settings/settings.html`) の表示と保存
 - デバイス別ホットキー割り当てと競合検知
 - スタートアップ登録のON/OFF
 - 切り替え時の小型ポップアップ表示
 - デバイス設定 (`device-settings.json`) の永続化
 
-つまり、ホットキーやUI通知を追加したい場合は `audio-selector.js` ではなく `main.js` / `tray-popup.js` / `settings.html` 側を編集します。
+つまり、ホットキーやUI通知を追加したい場合は `main/audio-selector.js` ではなく `main/main.js` / `main/tray-popup.js` / `renderer/settings/settings.html` 側を編集します。
 
 ---
 

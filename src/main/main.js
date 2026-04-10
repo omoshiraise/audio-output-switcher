@@ -1,12 +1,13 @@
 'use strict';
 
-const { app, Tray, Menu, nativeImage, BrowserWindow, ipcMain, globalShortcut } = require('electron');
+const { app, Tray, Menu, BrowserWindow, ipcMain, globalShortcut } = require('electron');
 if (require('electron-squirrel-startup')) app.quit();
 const fs = require('fs');
 const path = require('path');
 const i18n = require('i18next');
 const { AudioSelector } = require('./audio-selector');
 const TrayPopup = require('./tray-popup');
+const TrayIconManager = require('./tray-icon-manager');
 
 app.setAppUserModelId('com.audio-tray-switcher');
 
@@ -46,6 +47,14 @@ function normalizeHotkey(value) {
   return hotkey;
 }
 
+function normalizeIconColor(value) {
+  const color = String(value || '').trim();
+  if (!color) {
+    return '';
+  }
+  return /^#[0-9A-Fa-f]{6}$/.test(color) ? color : '';
+}
+
 const selector = new AudioSelector();
 const popup = new TrayPopup();
 
@@ -55,37 +64,37 @@ i18n.init({
   fallbackLng: 'en',
   resources: {
     ja: {
-      translation: require('./locales/ja.json')
+      translation: require('../shared/locales/ja.json')
     },
     en: {
-      translation: require('./locales/en.json')
+      translation: require('../shared/locales/en.json')
     },
     'zh-TW': {
-      translation: require('./locales/zh-TW.json')
+      translation: require('../shared/locales/zh-TW.json')
     },
     'zh-CN': {
-      translation: require('./locales/zh-CN.json')
+      translation: require('../shared/locales/zh-CN.json')
     },
     ko: {
-      translation: require('./locales/ko.json')
+      translation: require('../shared/locales/ko.json')
     },
     it: {
-      translation: require('./locales/it.json')
+      translation: require('../shared/locales/it.json')
     },
     de: {
-      translation: require('./locales/de.json')
+      translation: require('../shared/locales/de.json')
     },
     fr: {
-      translation: require('./locales/fr.json')
+      translation: require('../shared/locales/fr.json')
     },
     es: {
-      translation: require('./locales/es.json')
+      translation: require('../shared/locales/es.json')
     },
     pt: {
-      translation: require('./locales/pt.json')
+      translation: require('../shared/locales/pt.json')
     },
     ru: {
-      translation: require('./locales/ru.json')
+      translation: require('../shared/locales/ru.json')
     }
   }
 });
@@ -112,14 +121,15 @@ const ICON_DATA_URL =
   'ALIjBtQBA5IICWVNmmZDItJDxWhdMOqAUQeMOmDUAUPKAQBjFD14VY6/LgAAAABJRU5ErkJg' +
   'gg==';
 
-function buildIcon() {
-  const iconPath = path.join(__dirname, '..', 'speaker_tray.ico');
-  if (fs.existsSync(iconPath)) {
-    return nativeImage.createFromPath(iconPath);
-  }
-  console.warn('Tray icon not found at', iconPath, '; falling back to embedded icon.');
-  return nativeImage.createFromDataURL(ICON_DATA_URL);
-}
+const trayIconManager = new TrayIconManager({
+  baseDir: __dirname,
+  svgPath: path.join(__dirname, '..', 'assets', 'icons', 'speaker_tray.svg'),
+  fallbackDataUrl: ICON_DATA_URL,
+  defaultColor: '#e575ff',
+  renderWidth: 64,
+  trayIconWidth: 16,
+  trayIconHeight: 16,
+});
 
 function getSettingsFilePath() {
   return path.join(app.getPath('userData'), 'device-settings.json');
@@ -151,11 +161,16 @@ function loadDeviceSettings() {
 
   // Ensure each device has a normalized hotkey value.
   Object.keys(deviceSettings.devices).forEach(id => {
+    if (!deviceSettings.devices[id] || typeof deviceSettings.devices[id] !== 'object') {
+      deviceSettings.devices[id] = { alias: '', hidden: false, hotkey: HOTKEY_NONE_VALUE, iconColor: '' };
+      return;
+    }
     if (!deviceSettings.devices[id].hotkey) {
       deviceSettings.devices[id].hotkey = HOTKEY_NONE_VALUE;
     } else {
       deviceSettings.devices[id].hotkey = normalizeHotkey(deviceSettings.devices[id].hotkey);
     }
+    deviceSettings.devices[id].iconColor = normalizeIconColor(deviceSettings.devices[id].iconColor);
   });
 
   return deviceSettings;
@@ -179,7 +194,7 @@ function getMergedDeviceList(currentDevices) {
   const merged = [];
   mergedIds.forEach(id => {
     const current = currentMap.get(id);
-    const settings = deviceSettings.devices[id] || { alias: '', hidden: false, hotkey: HOTKEY_NONE_VALUE };
+    const settings = deviceSettings.devices[id] || { alias: '', hidden: false, hotkey: HOTKEY_NONE_VALUE, iconColor: '' };
     const name = current ? current.name : (settings.alias || '不明なデバイス');
     merged.push({
       id,
@@ -187,6 +202,7 @@ function getMergedDeviceList(currentDevices) {
       alias: settings.alias || '',
       hidden: Boolean(settings.hidden),
       hotkey: settings.hotkey || HOTKEY_NONE_VALUE,
+      iconColor: normalizeIconColor(settings.iconColor),
       available: Boolean(current),
     });
   });
@@ -205,6 +221,12 @@ function getSettingsTexts() {
     visibleHeader: i18n.t('visibleHeader'),
     displayNameHeader: i18n.t('displayNameHeader'),
     hotkeyHeader: i18n.t('hotkeyHeader'),
+    iconColorHeader: i18n.t('iconColorHeader', { defaultValue: 'Icon Color' }),
+    selectColor: i18n.t('selectColor'),
+    clearColor: i18n.t('clearColor'),
+    colorApply: i18n.t('colorApply'),
+    unknownDevice: i18n.t('unknownDevice'),
+    unavailableSuffix: i18n.t('unavailableSuffix'),
     noneHotkey: i18n.t('noneHotkey'),
     refresh: i18n.t('refresh'),
     saveAndClose: i18n.t('saveAndClose'),
@@ -212,6 +234,8 @@ function getSettingsTexts() {
     noDevices: i18n.t('noDevices'),
     saved: i18n.t('saved'),
     refreshed: i18n.t('refreshed'),
+    saveErrorPrefix: i18n.t('saveErrorPrefix'),
+    loadErrorPrefix: i18n.t('loadErrorPrefix'),
   };
 }
 
@@ -230,7 +254,7 @@ function getAboutTexts() {
 }
 
 function getLicensesFilePath() {
-  return path.join(__dirname, '..', 'licenses.json');
+  return path.join(__dirname, '..', '..', 'licenses.json');
 }
 
 function readLicenseEntries() {
@@ -271,7 +295,7 @@ function openSettingsWindow() {
     maximizable: false,
     title: settingsWindowTitle,
     webPreferences: {
-      preload: path.join(__dirname, 'settings-preload.js'),
+      preload: path.join(__dirname, '..', 'preload', 'settings-preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: false,
@@ -279,7 +303,7 @@ function openSettingsWindow() {
   });
 
   settingsWindow.setMenu(null);
-  settingsWindow.loadFile(path.join(__dirname, 'settings.html')).catch(err => {
+  settingsWindow.loadFile(path.join(__dirname, '..', 'renderer', 'settings', 'settings.html')).catch(err => {
     console.error('Failed to load settings.html:', err);
     settingsWindow.close();
     settingsWindow = null;
@@ -306,7 +330,7 @@ function openAboutWindow() {
     maximizable: false,
     title: aboutWindowTitle,
     webPreferences: {
-      preload: path.join(__dirname, 'about-preload.js'),
+      preload: path.join(__dirname, '..', 'preload', 'about-preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: false,
@@ -314,7 +338,7 @@ function openAboutWindow() {
   });
 
   aboutWindow.setMenu(null);
-  aboutWindow.loadFile(path.join(__dirname, 'about.html')).catch(err => {
+  aboutWindow.loadFile(path.join(__dirname, '..', 'renderer', 'about', 'about.html')).catch(err => {
     console.error('Failed to load about.html:', err);
     aboutWindow.close();
     aboutWindow = null;
@@ -457,7 +481,7 @@ async function buildMenuTemplate() {
       { type: 'separator' },
       { label: i18n.t('exit'), click: () => app.quit() },
     ];
-    return { menu, defaultDeviceName: i18n.t('deviceFetchFailed') };
+    return { menu, defaultDeviceName: i18n.t('deviceFetchFailed'), defaultIconColor: '' };
   }
 
   const mergedDevices = getMergedDeviceList(result.devices);
@@ -465,6 +489,7 @@ async function buildMenuTemplate() {
 
   const defaultDevice = mergedDevices.find(device => device.id === result.defaultDeviceId);
   const defaultDeviceName = defaultDevice ? (defaultDevice.alias || defaultDevice.name) : '不明なデバイス';
+  const defaultIconColor = defaultDevice ? normalizeIconColor(defaultDevice.iconColor) : '';
 
   const deviceItems = visibleDevices.map(device => {
     const isDefault = device.id === result.defaultDeviceId;
@@ -502,15 +527,16 @@ async function buildMenuTemplate() {
     { label: i18n.t('exit'), click: () => app.quit() }
   );
 
-  return { menu, defaultDeviceName };
+  return { menu, defaultDeviceName, defaultIconColor };
 }
 
 async function refreshMenu() {
   if (!tray) return;
-  const { menu: template, defaultDeviceName } = await buildMenuTemplate();
+  const { menu: template, defaultDeviceName, defaultIconColor } = await buildMenuTemplate();
   currentMenu = Menu.buildFromTemplate(template);
   currentMenuSignature = createMenuSignature(template);
   tray.setContextMenu(currentMenu);
+  tray.setImage(trayIconManager.buildIcon(defaultIconColor));
   tray.setToolTip(`${i18n.t('tooltipPrefix')}${defaultDeviceName}`);
 }
 
@@ -518,16 +544,18 @@ async function refreshMenuIfChanged() {
   if (!tray || refreshInProgress) return false;
   refreshInProgress = true;
   try {
-    const { menu: template, defaultDeviceName } = await buildMenuTemplate();
+    const { menu: template, defaultDeviceName, defaultIconColor } = await buildMenuTemplate();
     const signature = createMenuSignature(template);
     if (signature !== currentMenuSignature) {
       currentMenu = Menu.buildFromTemplate(template);
       currentMenuSignature = signature;
       tray.setContextMenu(currentMenu);
       refreshSettingsWindow();
+      tray.setImage(trayIconManager.buildIcon(defaultIconColor));
       tray.setToolTip(`${i18n.t('tooltipPrefix')}${defaultDeviceName}`);
       return true;
     }
+    tray.setImage(trayIconManager.buildIcon(defaultIconColor));
     tray.setToolTip(`${i18n.t('tooltipPrefix')}${defaultDeviceName}`);
     return false;
   } finally {
@@ -569,11 +597,12 @@ ipcMain.handle('settings:update', async (_event, updates) => {
   deviceUpdates.forEach(update => {
     const id = update.id;
     if (!deviceSettings.devices[id]) {
-      deviceSettings.devices[id] = { alias: '', hidden: false, hotkey: HOTKEY_NONE_VALUE };
+      deviceSettings.devices[id] = { alias: '', hidden: false, hotkey: HOTKEY_NONE_VALUE, iconColor: '' };
     }
     deviceSettings.devices[id].hidden = Boolean(update.hidden);
     deviceSettings.devices[id].alias = String(update.alias || '').trim();
     deviceSettings.devices[id].hotkey = normalizeHotkey(update.hotkey);
+    deviceSettings.devices[id].iconColor = normalizeIconColor(update.iconColor);
   });
 
   if (updates.hotkeysEnabled !== undefined) {
@@ -606,7 +635,7 @@ app.whenReady().then(async () => {
 
   app.setLoginItemSettings({ openAtLogin: deviceSettings.startupEnabled, path: process.execPath });
 
-  tray = new Tray(buildIcon());
+  tray = new Tray(trayIconManager.buildIcon(''));
   popup.init(tray);
   const showMenu = async () => {
     tray.popUpContextMenu();

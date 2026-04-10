@@ -32,7 +32,7 @@ class TrayPopup {
       transparent: true,
       webPreferences: {
         contextIsolation: true,
-        preload: path.join(__dirname, 'popup-preload.js'),
+        preload: path.join(__dirname, '..', 'preload', 'popup-preload.js'),
       },
     });
 
@@ -40,7 +40,7 @@ class TrayPopup {
       this._win.webContents.once('did-finish-load', resolve);
     });
 
-    this._win.loadFile(path.join(__dirname, 'popup.html'));
+    this._win.loadFile(path.join(__dirname, '..', 'renderer', 'popup', 'popup.html'));
     this._win.on('blur', () => this.hide());
   }
 

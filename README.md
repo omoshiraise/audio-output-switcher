@@ -15,6 +15,7 @@ You can still assign hotkeys to hidden devices, which is useful when you want to
 - Switch devices from the tray icon
 - Hide or set aliases for devices in the settings dialog
 - Assign per-device global hotkeys from settings
+- Set a per-device tray icon background color so the selected device is easy to identify visually
 - Keep hotkey/alias/visibility settings even if a device is temporarily unavailable
 - Keep hotkeys active for hidden devices (unavailable devices are ignored)
 - Detect and show hotkey conflicts
@@ -79,13 +80,29 @@ npm run make
 
 ```
 src/
-├── main.js               # Electron main process
-├── audio-selector.js     # Audio device operations
-├── settings.html         # Settings dialog UI
-├── settings-preload.js   # Settings window preload API
-├── tray-popup.js         # Small popup window controller
-├── popup.html            # Popup UI
-└── popup-preload.js      # Popup preload API
+├── assets/
+│   └── icons/
+│       └── speaker_tray.svg
+├── main/
+│   ├── main.js               # Electron main process entry
+│   ├── audio-selector.js     # Audio device operations
+│   ├── tray-icon-manager.js  # Tray icon loading/rendering
+│   └── tray-popup.js         # Small popup window controller
+├── preload/
+│   ├── about-preload.js
+│   ├── popup-preload.js
+│   └── settings-preload.js
+├── renderer/
+│   ├── about/
+│   │   └── about.html
+│   ├── popup/
+│   │   └── popup.html
+│   └── settings/
+│       ├── color-popover.js
+│       └── settings.html
+└── shared/
+  └── locales/
+    └── *.json
 ```
 
 ### Technical Specifications

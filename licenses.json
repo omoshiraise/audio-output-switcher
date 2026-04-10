@@ -3,6 +3,14 @@
         "licenses": "MIT",
         "repository": "https://github.com/babel/babel"
     },
+    "@resvg/resvg-js-win32-x64-msvc@2.6.2": {
+        "licenses": "MPL-2.0",
+        "repository": "https://github.com/yisibl/resvg-js"
+    },
+    "@resvg/resvg-js@2.6.2": {
+        "licenses": "MPL-2.0",
+        "repository": "https://github.com/yisibl/resvg-js"
+    },
     "debug@2.6.9": {
         "licenses": "MIT",
         "repository": "https://github.com/visionmedia/debug"

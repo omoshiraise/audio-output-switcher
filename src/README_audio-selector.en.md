@@ -6,8 +6,8 @@
 
 | File | Role |
 |---|---|
-| `audio-selector.js` | `AudioSelector` class **(Main process only)** |
-| `main.js` | Main entry for the tray app (Example) |
+| `main/audio-selector.js` | `AudioSelector` class **(Main process only)** |
+| `main/main.js` | Main entry for the tray app (Example) |
 
 ---
 
@@ -17,7 +17,7 @@
 
 `AudioSelector` uses only Node.js standard modules (`child_process`, `fs`, `os`, `path`), so no additional npm packages are required.
 
-### 2. Integration into main.js
+### 2. Integration into main/main.js
 
 To use it as a tray application:
 
@@ -69,16 +69,16 @@ Switches the Windows default playback device to the specified device.
 
 ## Scope in This Repository
 
-`AudioSelector` is responsible only for device enumeration/switching. The following features are implemented at the app layer (`main.js` and UI files):
+`AudioSelector` is responsible only for device enumeration/switching. The following features are implemented at the app layer (`main/main.js` and UI files):
 
 - Tray menu rendering
-- Settings window (`settings.html`) load/save flow
+- Settings window (`renderer/settings/settings.html`) load/save flow
 - Per-device hotkey assignment and conflict detection
 - Startup registration toggle
 - Small popup on successful switch
 - Persistent settings in `device-settings.json`
 
-So if you want to change hotkeys or popup behavior, edit `main.js` / `tray-popup.js` / `settings.html` rather than `audio-selector.js`.
+So if you want to change hotkeys or popup behavior, edit `main/main.js` / `main/tray-popup.js` / `renderer/settings/settings.html` rather than `main/audio-selector.js`.
 
 ---
 

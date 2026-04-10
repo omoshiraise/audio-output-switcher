@@ -40,7 +40,7 @@
     }
     .table-header {
       display: grid;
-      grid-template-columns: 1fr 60px 140px 140px;
+      grid-template-columns: 1fr 60px 140px 140px 64px;
       gap: 12px;
       padding: 12px;
       background: #f0f0f0;
@@ -54,7 +54,7 @@
     }
     .table-row {
       display: grid;
-      grid-template-columns: 1fr 60px 140px 140px;
+      grid-template-columns: 1fr 60px 140px 140px 64px;
       gap: 12px;
       padding: 12px;
       border-bottom: 1px solid #e0e0e0;
@@ -103,6 +103,99 @@
       border: 1px solid #ccc;
       border-radius: 4px;
       font-size: 13px;
+    }
+    .icon-color-col {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .icon-color-swatch {
+      width: 22px;
+      height: 22px;
+      border: 1px solid #999;
+      border-radius: 4px;
+      background: #fff;
+      cursor: pointer;
+      padding: 0;
+      position: relative;
+    }
+    .icon-color-swatch.is-empty::after {
+      content: '';
+      position: absolute;
+      left: 3px;
+      right: 3px;
+      top: 10px;
+      border-top: 1.5px solid #999;
+      transform: rotate(-40deg);
+      transform-origin: center;
+    }
+    .icon-color-clear {
+      width: 18px;
+      height: 18px;
+      border: 1px solid #bbb;
+      border-radius: 4px;
+      background: #fff;
+      color: #555;
+      font-size: 12px;
+      line-height: 1;
+      cursor: pointer;
+      padding: 0;
+    }
+    .icon-color-clear:disabled {
+      opacity: 0.45;
+      cursor: default;
+    }
+    .color-popover {
+      position: fixed;
+      z-index: 9999;
+      width: 196px;
+      background: #fff;
+      border: 1px solid #c9c9c9;
+      border-radius: 8px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
+      padding: 10px;
+    }
+    .color-grid {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+    .color-cell {
+      width: 18px;
+      height: 18px;
+      border: 1px solid rgba(0, 0, 0, 0.2);
+      border-radius: 4px;
+      padding: 0;
+      cursor: pointer;
+      background: transparent;
+    }
+    .color-custom-row {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .color-custom-row input {
+      flex: 1;
+      min-width: 0;
+      border: 1px solid #c7c7c7;
+      border-radius: 4px;
+      padding: 4px 6px;
+      font-size: 12px;
+      font-family: Consolas, monospace;
+    }
+    .color-custom-row button {
+      padding: 4px 8px;
+      border-radius: 4px;
+      border: 1px solid #bcbcbc;
+      background: #f4f4f4;
+      color: #222;
+      font-size: 12px;
+      line-height: 1;
+      cursor: pointer;
+    }
+    .color-custom-row button:hover {
+      background: #eaeaea;
     }
     .footer {
       display: flex;
@@ -180,6 +273,7 @@
       <div id="visibleHeader" style="text-align: center;"></div>
       <div id="displayNameHeader"></div>
       <div id="hotkeyHeader"></div>
+      <div id="iconColorHeader"></div>
     </div>
     <div class="table-body" id="deviceList"></div>
   </div>
@@ -200,10 +294,13 @@
     </div>
   </div>
   <div id="status"></div>
+  <div id="colorPopoverRoot"></div>
 
+  <script src="./color-popover.js"></script>
   <script>
     let devices = [];
     const HOTKEY_NONE_VALUE = '__none__';
+    let colorPopover = null;
     let texts = {
       title: '設定',
       description: 'コンテキストメニューに表示するデバイスを設定します。',
@@ -213,6 +310,12 @@
       visibleHeader: '表示',
       displayNameHeader: '表示名',
       hotkeyHeader: 'ホットキー',
+      iconColorHeader: 'アイコン色',
+      selectColor: '色を選択',
+      clearColor: '未設定に戻す',
+      colorApply: 'OK',
+      unknownDevice: '不明なデバイス',
+      unavailableSuffix: '未接続',
       refresh: '更新',
       saveAndClose: '保存して閉じる',
       close: '閉じる',
@@ -220,6 +323,8 @@
       noDevices: 'デバイスが見つかりません。',
       saved: '設定を保存しました。',
       refreshed: 'デバイス一覧を更新しました。',
+      saveErrorPrefix: '保存エラー',
+      loadErrorPrefix: '読み込みエラー',
     };
 
     function t(key) {
@@ -236,9 +341,22 @@
       document.getElementById('visibleHeader').textContent = t('visibleHeader');
       document.getElementById('displayNameHeader').textContent = t('displayNameHeader');
       document.getElementById('hotkeyHeader').textContent = t('hotkeyHeader');
+      document.getElementById('iconColorHeader').textContent = t('iconColorHeader');
       document.getElementById('refreshBtnText').textContent = t('refresh');
       document.getElementById('saveBtnText').textContent = t('saveAndClose');
       document.getElementById('closeBtnText').textContent = t('close');
+    }
+
+    function normalizeColor(value) {
+      const color = String(value || '').trim();
+      return /^#[0-9A-Fa-f]{6}$/.test(color) ? color : '';
+    }
+
+    function createSwatchStyle(color) {
+      if (!color) {
+        return '';
+      }
+      return ` style="background:${color};"`;
     }
 
     function escapeHtml(value) {
@@ -258,11 +376,12 @@
       }
 
       container.innerHTML = devices.map(device => {
-        const title = escapeHtml(device.name || '(不明なデバイス)');
+        const title = escapeHtml(device.name || `(${t('unknownDevice')})`);
         const aliasValue = escapeHtml(device.alias || '');
         const hotkeyValue = device.hotkey || HOTKEY_NONE_VALUE;
+        const iconColorValue = normalizeColor(device.iconColor);
         const missingClass = device.available ? '' : ' missing';
-        const displayName = device.available ? title : `${title} (未接続)`;
+        const displayName = device.available ? title : `${title} (${escapeHtml(t('unavailableSuffix'))})`;
 
         const hotkeyOptions = [
           { value: HOTKEY_NONE_VALUE, label: t('noneHotkey') },
@@ -280,6 +399,12 @@
           ${hotkeyOptions.map(option => `<option value="${option.value}" ${option.value === hotkeyValue ? 'selected' : ''}>${option.label}</option>`).join('')}
         </select>`;
 
+        const colorUi = `
+          <div class="icon-color-col">
+            <button type="button" class="icon-color-swatch${iconColorValue ? '' : ' is-empty'}" data-icon-color="${iconColorValue}" title="${escapeHtml(t('selectColor'))}"${createSwatchStyle(iconColorValue)}></button>
+            <button type="button" class="icon-color-clear" title="${escapeHtml(t('clearColor'))}" ${iconColorValue ? '' : 'disabled'}>x</button>
+          </div>`;
+
         return `
           <div class="table-row${missingClass}" data-device-id="${device.id}">
             <div class="device-name${!device.available ? ' unavailable' : ''}">${displayName}</div>
@@ -292,9 +417,23 @@
             <div class="hotkey-col">
               ${hotkeySelect}
             </div>
+            <div>
+              ${colorUi}
+            </div>
           </div>
         `;
       }).join('');
+    }
+
+    function updateIconColorUi(columnEl, color) {
+      const normalized = normalizeColor(color);
+      const swatch = columnEl.querySelector('.icon-color-swatch');
+      const clearBtn = columnEl.querySelector('.icon-color-clear');
+
+      swatch.dataset.iconColor = normalized;
+      swatch.style.background = normalized || '#fff';
+      swatch.classList.toggle('is-empty', !normalized);
+      clearBtn.disabled = !normalized;
     }
 
     function handleHotkeyChange(changedSelect) {
@@ -314,6 +453,30 @@
     document.addEventListener('change', (event) => {
       if (event.target.classList.contains('hotkey-select')) {
         handleHotkeyChange(event.target);
+      }
+    });
+
+    document.addEventListener('click', (event) => {
+      if (event.target.classList.contains('icon-color-swatch')) {
+        event.preventDefault();
+        event.stopPropagation();
+        const columnEl = event.target.closest('.icon-color-col');
+        const swatch = columnEl.querySelector('.icon-color-swatch');
+        const currentColor = normalizeColor(swatch ? swatch.dataset.iconColor : '');
+        colorPopover.open({
+          anchorEvent: event,
+          currentColor,
+          onSelect: color => updateIconColorUi(columnEl, color),
+        });
+        return;
+      }
+
+      if (event.target.classList.contains('icon-color-clear')) {
+        event.preventDefault();
+        event.stopPropagation();
+        colorPopover.close();
+        const columnEl = event.target.closest('.icon-color-col');
+        updateIconColorUi(columnEl, '');
       }
     });
 
@@ -339,7 +502,9 @@
           const visible = row.querySelector('.hide-checkbox').checked;
           const alias = row.querySelector('.alias-input').value.trim();
           const hotkey = row.querySelector('.hotkey-select').value;
-          return { id, hidden: !visible, alias, hotkey };
+          const swatch = row.querySelector('.icon-color-swatch');
+          const iconColor = normalizeColor(swatch ? swatch.dataset.iconColor : '');
+          return { id, hidden: !visible, alias, hotkey, iconColor };
         });
         const payload = {
           deviceUpdates,
@@ -350,7 +515,7 @@
         await window.settingsAPI.updateSettings(payload);
         document.getElementById('status').textContent = t('saved');
       } catch (err) {
-        document.getElementById('status').textContent = '保存エラー: ' + (err && err.message ? err.message : String(err));
+        document.getElementById('status').textContent = `${t('saveErrorPrefix')}: ${err && err.message ? err.message : String(err)}`;
       }
     }
 
@@ -378,9 +543,14 @@
 
     (async () => {
       try {
+        colorPopover = new window.ColorPopover({
+          root: document.getElementById('colorPopoverRoot'),
+          getText: t,
+          normalizeColor,
+        });
         await loadSettings();
       } catch (err) {
-        document.getElementById('status').textContent = '読み込みエラー: ' + (err && err.message ? err.message : String(err));
+        document.getElementById('status').textContent = `${t('loadErrorPrefix')}: ${err && err.message ? err.message : String(err)}`;
       }
     })();
   </script>
