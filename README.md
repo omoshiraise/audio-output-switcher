@@ -30,6 +30,9 @@ You can still assign hotkeys to hidden devices, which is useful when you want to
 ## Installation
 
 Run the installer `.exe` file to install the application.
+The installer is not code-signed, so you may see a "Windows protected your PC" SmartScreen warning.
+If that happens, click **More info** and then click the **Run anyway** button.
+For your safety, please only use an installer you downloaded from the official source.
 
 ## Usage
 
