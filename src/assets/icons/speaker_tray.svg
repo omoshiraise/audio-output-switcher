@@ -27,15 +27,7 @@
        d="M 35.053891,70.832893 59.938921,70.600819 80.135027,53.635932 V 111.56997 L 59.968898,93.535802 35.053891,93.527243 Z"
        id="path10" />
     <rect
-       style="fill:#2b2b2b;fill-opacity:1"
-       id="rect14"
-       width="18.677029"
-       height="5.0745134"
-       x="34.95776"
-       y="56.384636"
-       ry="0" />
-    <rect
-       style="fill:#00ff00;fill-opacity:1;stroke-width:0.653005"
+       style="fill:#2b2b2b;fill-opacity:1;stroke-width:0.653005"
        id="rect14-9"
        width="7.9641666"
        height="5.0745134"
@@ -43,7 +35,7 @@
        y="79.748352"
        ry="0" />
     <rect
-       style="fill:#ff0000;fill-opacity:1;stroke-width:0.653005"
+       style="fill:#2b2b2b;fill-opacity:1;stroke-width:0.653005"
        id="rect14-9-1"
        width="7.9641666"
        height="5.0745134"
@@ -51,29 +43,12 @@
        y="59.713551"
        ry="0" />
     <rect
-       style="fill:#0000ff;fill-opacity:1;stroke-width:0.653005"
+       style="fill:#2b2b2b;fill-opacity:1;stroke-width:0.653005"
        id="rect14-9-4"
        width="7.9641666"
        height="5.0745134"
        x="82.919731"
        y="99.682007"
        ry="0" />
-    <path
-       style="fill:#2b2b2b;fill-opacity:1;stroke-width:0.264583"
-       d="m 52.084244,53.515613 0.140959,7.96417 h 8.034647 z"
-       id="path14" />
-    <rect
-       style="fill:#2b2b2b;fill-opacity:1"
-       id="rect14-1"
-       width="18.677029"
-       height="5.0745134"
-       x="-60.319084"
-       y="103.98106"
-       ry="0"
-       transform="scale(-1,1)" />
-    <path
-       style="fill:#2b2b2b;fill-opacity:1;stroke-width:0.264583"
-       d="m 43.192603,101.06221 -0.140959,7.96417 h -8.034647 z"
-       id="path14-8" />
   </g>
 </svg>
