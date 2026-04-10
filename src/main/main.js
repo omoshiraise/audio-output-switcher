@@ -1,13 +1,60 @@
 'use strict';
 
 const { app, Tray, Menu, BrowserWindow, ipcMain, globalShortcut } = require('electron');
-if (require('electron-squirrel-startup')) app.quit();
+const childProcess = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const i18n = require('i18next');
 const { AudioSelector } = require('./audio-selector');
 const TrayPopup = require('./tray-popup');
 const TrayIconManager = require('./tray-icon-manager');
+
+const SQUIRREL_COMMANDS = new Set([
+  '--squirrel-install',
+  '--squirrel-updated',
+  '--squirrel-uninstall',
+  '--squirrel-obsolete',
+]);
+
+function getSquirrelCommand(commandLine = process.argv) {
+  return commandLine.find(arg => SQUIRREL_COMMANDS.has(arg)) || null;
+}
+
+function runSquirrelUpdate(commandLine = process.argv) {
+  const squirrelCommand = getSquirrelCommand(commandLine);
+  if (!squirrelCommand) {
+    return false;
+  }
+
+  const appExecutablePath = commandLine[0] || process.execPath;
+  const updateExePath = path.resolve(path.dirname(appExecutablePath), '..', 'Update.exe');
+  const targetExeName = path.basename(appExecutablePath);
+
+  if (squirrelCommand === '--squirrel-obsolete') {
+    app.quit();
+    return true;
+  }
+
+  let updateArgs;
+  if (squirrelCommand === '--squirrel-install' || squirrelCommand === '--squirrel-updated') {
+    updateArgs = ['--createShortcut', targetExeName];
+  } else if (squirrelCommand === '--squirrel-uninstall') {
+    updateArgs = ['--removeShortcut', targetExeName];
+  } else {
+    return false;
+  }
+
+  try {
+    childProcess.spawn(updateExePath, updateArgs, { detached: true });
+  } catch (error) {
+    console.error('Failed to handle Squirrel event:', error);
+  }
+
+  setTimeout(() => {
+    app.quit();
+  }, 1000);
+  return true;
+}
 
 app.setAppUserModelId('com.audio-tray-switcher');
 
@@ -17,7 +64,10 @@ if (!gotLock) {
   return;
 }
 
-app.on('second-instance', () => {
+app.on('second-instance', (_event, commandLine) => {
+  if (runSquirrelUpdate(commandLine)) {
+    return;
+  }
   if (settingsWindow && !settingsWindow.isDestroyed()) {
     settingsWindow.focus();
     return;
@@ -28,6 +78,10 @@ app.on('second-instance', () => {
 });
 
 app.on('window-all-closed', () => {});
+
+if (runSquirrelUpdate(process.argv)) {
+  return;
+}
 
 let tray = null;
 let settingsWindow = null;
