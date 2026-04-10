@@ -42,7 +42,7 @@ Run the installer `.exe` file to install the application.
 
 - **Visible**: Show/hide devices in the tray menu
 - **Display Name**: Set an alias for the device
-- **Hotkey**: Assign a direct-switch hotkey for each device (`None`, `Ctrl+Alt+Home`, `Ctrl+Alt+End`, `Ctrl+Alt+PageUp`, `Ctrl+Alt+PageDown`)
+- **Hotkey**: Assign a direct-switch hotkey for each device (e.g. None, Ctrl+Alt+Home, Shift+Alt+PageUp, etc.)
 - **Hotkeys Enabled**: Enable/disable global hotkeys
 - **Launch at startup**: Register/unregister startup
 - **Refresh**: Reload the device list

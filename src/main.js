@@ -37,6 +37,15 @@ let currentMenuSignature = null;
 let refreshInProgress = false;
 let currentLocale = 'en';
 const HOTKEY_NONE_VALUE = '__none__';
+
+function normalizeHotkey(value) {
+  let hotkey = String(value || '').trim();
+  if (!hotkey || hotkey === HOTKEY_NONE_VALUE) {
+    return HOTKEY_NONE_VALUE;
+  }
+  return hotkey;
+}
+
 const selector = new AudioSelector();
 const popup = new TrayPopup();
 
@@ -145,13 +154,7 @@ function loadDeviceSettings() {
     if (!deviceSettings.devices[id].hotkey) {
       deviceSettings.devices[id].hotkey = HOTKEY_NONE_VALUE;
     } else {
-      let hotkey = String(deviceSettings.devices[id].hotkey || '');
-      // Normalize old accelerator spellings.
-      if (hotkey === 'Ctrl+Alt+pgup') hotkey = 'Ctrl+Alt+PageUp';
-      if (hotkey === 'Ctrl+Alt+pgdn') hotkey = 'Ctrl+Alt+PageDown';
-      if (hotkey === 'Ctrl+Alt+home') hotkey = 'Ctrl+Alt+Home';
-      if (hotkey === 'Ctrl+Alt+end') hotkey = 'Ctrl+Alt+End';
-      deviceSettings.devices[id].hotkey = hotkey || HOTKEY_NONE_VALUE;
+      deviceSettings.devices[id].hotkey = normalizeHotkey(deviceSettings.devices[id].hotkey);
     }
   });
 
@@ -361,8 +364,7 @@ async function setupHotkeys() {
   availableDevices.forEach(device => {
     let hotkey = device.hotkey;
     if (hotkey && hotkey !== HOTKEY_NONE_VALUE) {
-      // Normalize hotkey strings
-      hotkey = hotkey.replace('pgup', 'PageUp').replace('pgdn', 'PageDown');
+      hotkey = normalizeHotkey(hotkey);
       if (globalShortcut.isRegistered(hotkey)) {
         globalShortcut.unregister(hotkey);
       }
@@ -571,13 +573,7 @@ ipcMain.handle('settings:update', async (_event, updates) => {
     }
     deviceSettings.devices[id].hidden = Boolean(update.hidden);
     deviceSettings.devices[id].alias = String(update.alias || '').trim();
-    let hotkey = String(update.hotkey || HOTKEY_NONE_VALUE);
-    // Normalize hotkey.
-    if (hotkey === 'Ctrl+Alt+pgup') hotkey = 'Ctrl+Alt+PageUp';
-    if (hotkey === 'Ctrl+Alt+pgdn') hotkey = 'Ctrl+Alt+PageDown';
-    if (hotkey === 'Ctrl+Alt+home') hotkey = 'Ctrl+Alt+Home';
-    if (hotkey === 'Ctrl+Alt+end') hotkey = 'Ctrl+Alt+End';
-    deviceSettings.devices[id].hotkey = hotkey || HOTKEY_NONE_VALUE;
+    deviceSettings.devices[id].hotkey = normalizeHotkey(update.hotkey);
   });
 
   if (updates.hotkeysEnabled !== undefined) {
