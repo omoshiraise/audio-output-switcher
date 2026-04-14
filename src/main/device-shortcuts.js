@@ -59,11 +59,15 @@ function parseSwitchRequestFromCommandLine(commandLine = []) {
   return null;
 }
 
-function getShortcutIconPath(baseDir) {
-  return path.join(baseDir, '..', '..', 'speaker_icon.ico');
+function getShortcutIconPath(iconPath) {
+  if (typeof iconPath === 'string' && iconPath.trim()) {
+    return iconPath;
+  }
+
+  return process.execPath;
 }
 
-function writeShortcutFile({ app, baseDir, deviceId, displayName }) {
+function writeShortcutFile({ app, iconPath, deviceId, displayName }) {
   const shortcutDir = path.join(app.getPath('temp'), SHORTCUT_TEMP_DIR);
   fs.mkdirSync(shortcutDir, { recursive: true });
 
@@ -72,7 +76,7 @@ function writeShortcutFile({ app, baseDir, deviceId, displayName }) {
   const shortcutContents = [
     '[InternetShortcut]',
     `URL=${buildShortcutUrl(deviceId, displayName)}`,
-    `IconFile=${getShortcutIconPath(baseDir)}`,
+    `IconFile=${getShortcutIconPath(iconPath)}`,
     'IconIndex=0',
     '',
   ].join('\r\n');

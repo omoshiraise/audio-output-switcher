@@ -731,13 +731,13 @@ ipcMain.on('shortcut:drag-start', (event, payload) => {
   try {
     const shortcutPath = writeShortcutFile({
       app,
-      baseDir: __dirname,
+      iconPath: process.execPath,
       deviceId,
       displayName,
     });
     event.sender.startDrag({
       file: shortcutPath,
-      icon: getShortcutIconPath(__dirname),
+      icon: getShortcutIconPath(process.execPath),
     });
   } catch (error) {
     console.error('Failed to start shortcut drag:', error);
