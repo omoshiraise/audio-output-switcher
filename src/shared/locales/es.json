@@ -18,6 +18,7 @@
   "visibleHeader": "Visible",
   "displayNameHeader": "Nombre para mostrar",
   "hotkeyHeader": "Atajo",
+  "shortcutDragTitle": "Arrastra a Windows para crear un acceso directo",
   "iconColorHeader": "Color",
   "selectColor": "Elegir color",
   "clearColor": "Borrar",

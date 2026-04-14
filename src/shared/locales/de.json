@@ -18,6 +18,7 @@
   "visibleHeader": "Sichtbar",
   "displayNameHeader": "Anzeigename",
   "hotkeyHeader": "Tastenkombination",
+  "shortcutDragTitle": "Nach Windows ziehen, um eine Verknüpfung zu erstellen",
   "iconColorHeader": "Farbe",
   "selectColor": "Farbe wählen",
   "clearColor": "Zurücksetzen",

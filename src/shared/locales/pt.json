@@ -18,6 +18,7 @@
   "visibleHeader": "Visível",
   "displayNameHeader": "Nome para exibição",
   "hotkeyHeader": "Atalho",
+  "shortcutDragTitle": "Arraste para o Windows para criar um atalho",
   "iconColorHeader": "Cor",
   "selectColor": "Escolher cor",
   "clearColor": "Limpar",

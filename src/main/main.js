@@ -286,8 +286,6 @@ function getSettingsTexts() {
     visibleHeader: i18n.t('visibleHeader'),
     displayNameHeader: i18n.t('displayNameHeader'),
     hotkeyHeader: i18n.t('hotkeyHeader'),
-    shortcutHeader: i18n.t('shortcutHeader', { defaultValue: 'Shortcut' }),
-    shortcutDragLabel: i18n.t('shortcutDragLabel', { defaultValue: 'Drag out' }),
     shortcutDragTitle: i18n.t('shortcutDragTitle', { defaultValue: 'Drag to Windows to create a shortcut' }),
     iconColorHeader: i18n.t('iconColorHeader', { defaultValue: 'Icon Color' }),
     selectColor: i18n.t('selectColor'),

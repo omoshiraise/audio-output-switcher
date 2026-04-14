@@ -18,8 +18,6 @@
   "visibleHeader": "Visible",
   "displayNameHeader": "Display name",
   "hotkeyHeader": "Hotkey",
-  "shortcutHeader": "Shortcut",
-  "shortcutDragLabel": "Drag out",
   "shortcutDragTitle": "Drag to Windows to create a shortcut",
   "iconColorHeader": "Color",
   "selectColor": "Select color",

@@ -18,6 +18,7 @@
   "visibleHeader": "可见",
   "displayNameHeader": "显示名称",
   "hotkeyHeader": "热键",
+  "shortcutDragTitle": "拖动到 Windows 以创建快捷方式",
   "iconColorHeader": "颜色",
   "selectColor": "选色",
   "clearColor": "清除",

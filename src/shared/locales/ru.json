@@ -18,6 +18,7 @@
   "visibleHeader": "Видимо",
   "displayNameHeader": "Отображаемое имя",
   "hotkeyHeader": "Горячая клавиша",
+  "shortcutDragTitle": "Перетащите в Windows, чтобы создать ярлык",
   "iconColorHeader": "Цвет",
   "selectColor": "Выбрать цвет",
   "clearColor": "Сбросить",

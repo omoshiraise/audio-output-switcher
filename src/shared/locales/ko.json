@@ -18,6 +18,7 @@
   "visibleHeader": "표시",
   "displayNameHeader": "표시 이름",
   "hotkeyHeader": "단축키",
+  "shortcutDragTitle": "바로 가기를 만들려면 Windows로 드래그하세요",
   "iconColorHeader": "색상",
   "selectColor": "색 선택",
   "clearColor": "지우기",

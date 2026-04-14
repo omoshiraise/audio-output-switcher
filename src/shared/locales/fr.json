@@ -18,6 +18,7 @@
   "visibleHeader": "Visible",
   "displayNameHeader": "Nom d'affichage",
   "hotkeyHeader": "Raccourci",
+  "shortcutDragTitle": "Faites glisser vers Windows pour créer un raccourci",
   "iconColorHeader": "Couleur",
   "selectColor": "Choisir",
   "clearColor": "Effacer",
