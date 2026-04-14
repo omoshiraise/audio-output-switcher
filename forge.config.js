@@ -4,7 +4,10 @@ const { FuseV1Options, FuseVersion } = require('@electron/fuses');
 module.exports = {
   packagerConfig: {
     asar: true,
-    icon: './speaker_icon',
+    icon: './resources/speaker_icon',
+    extraResource: [
+      './resources/speaker_icon.ico',
+    ],
   },
   rebuildConfig: {},
   makers: [

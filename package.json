@@ -1,7 +1,7 @@
 {
   "name": "audio-output-switcher",
   "productName": "Audio Output Switcher",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Audio Output Device Switcher for Windows 10/11",
   "main": "src/main/main.js",
   "private": true,

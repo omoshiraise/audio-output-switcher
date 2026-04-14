@@ -123,6 +123,14 @@ function normalizeIconColor(value) {
 const selector = new AudioSelector();
 const popup = new TrayPopup();
 
+function getDragIconPath() {
+  if (!process.defaultApp && typeof process.resourcesPath === 'string' && process.resourcesPath.length > 0) {
+    return path.join(process.resourcesPath, 'speaker_icon.ico');
+  }
+
+  return path.join(__dirname, '..', '..', 'resources', 'speaker_icon.ico');
+}
+
 // Initialize i18next
 i18n.init({
   lng: 'en', // default language
@@ -737,7 +745,7 @@ ipcMain.on('shortcut:drag-start', (event, payload) => {
     });
     event.sender.startDrag({
       file: shortcutPath,
-      icon: getShortcutIconPath(process.execPath),
+      icon: getDragIconPath(),
     });
   } catch (error) {
     console.error('Failed to start shortcut drag:', error);
