@@ -6,6 +6,12 @@ const fs = require('fs');
 const path = require('path');
 const i18n = require('i18next');
 const { AudioSelector } = require('./audio-selector');
+const {
+  getShortcutIconPath,
+  parseSwitchRequestFromCommandLine,
+  registerCustomProtocol: registerShortcutProtocol,
+  writeShortcutFile,
+} = require('./device-shortcuts');
 const TrayPopup = require('./tray-popup');
 const TrayIconManager = require('./tray-icon-manager');
 
@@ -15,7 +21,6 @@ const SQUIRREL_COMMANDS = new Set([
   '--squirrel-uninstall',
   '--squirrel-obsolete',
 ]);
-
 function getSquirrelCommand(commandLine = process.argv) {
   return commandLine.find(arg => SQUIRREL_COMMANDS.has(arg)) || null;
 }
@@ -68,6 +73,11 @@ app.on('second-instance', (_event, commandLine) => {
   if (runSquirrelUpdate(commandLine)) {
     return;
   }
+  const switchRequest = parseSwitchRequestFromCommandLine(commandLine);
+  if (switchRequest) {
+    processSwitchRequest(switchRequest);
+    return;
+  }
   if (settingsWindow && !settingsWindow.isDestroyed()) {
     settingsWindow.focus();
     return;
@@ -92,6 +102,7 @@ let currentMenuSignature = null;
 let refreshInProgress = false;
 let currentLocale = 'en';
 const HOTKEY_NONE_VALUE = '__none__';
+let pendingSwitchRequest = null;
 
 function normalizeHotkey(value) {
   let hotkey = String(value || '').trim();
@@ -275,6 +286,9 @@ function getSettingsTexts() {
     visibleHeader: i18n.t('visibleHeader'),
     displayNameHeader: i18n.t('displayNameHeader'),
     hotkeyHeader: i18n.t('hotkeyHeader'),
+    shortcutHeader: i18n.t('shortcutHeader', { defaultValue: 'Shortcut' }),
+    shortcutDragLabel: i18n.t('shortcutDragLabel', { defaultValue: 'Drag out' }),
+    shortcutDragTitle: i18n.t('shortcutDragTitle', { defaultValue: 'Drag to Windows to create a shortcut' }),
     iconColorHeader: i18n.t('iconColorHeader', { defaultValue: 'Icon Color' }),
     selectColor: i18n.t('selectColor'),
     clearColor: i18n.t('clearColor'),
@@ -406,6 +420,33 @@ function openAboutWindow() {
 function refreshSettingsWindow() {
   if (!settingsWindow || settingsWindow.isDestroyed()) return;
   settingsWindow.webContents.send('settings:refresh-request');
+}
+
+async function processSwitchRequest(request) {
+  if (!request || !request.deviceId) {
+    return;
+  }
+
+  if (!app.isReady()) {
+    pendingSwitchRequest = request;
+    return;
+  }
+
+  pendingSwitchRequest = null;
+
+  try {
+    await switchDeviceById(request.deviceId, request.deviceName);
+  } catch (error) {
+    console.error('Shortcut switch failed:', error);
+  }
+}
+
+function registerCustomProtocol() {
+  try {
+    registerShortcutProtocol(app, process.argv);
+  } catch (error) {
+    console.error('Failed to register custom protocol:', error);
+  }
 }
 
 async function switchDeviceById(deviceId, fallbackName = '') {
@@ -682,10 +723,34 @@ ipcMain.handle('about:get', async () => {
   };
 });
 
+ipcMain.on('shortcut:drag-start', (event, payload) => {
+  const deviceId = String(payload && payload.deviceId ? payload.deviceId : '').trim();
+  const displayName = String(payload && payload.displayName ? payload.displayName : '').trim();
+  if (!deviceId || !displayName) {
+    return;
+  }
+
+  try {
+    const shortcutPath = writeShortcutFile({
+      app,
+      baseDir: __dirname,
+      deviceId,
+      displayName,
+    });
+    event.sender.startDrag({
+      file: shortcutPath,
+      icon: getShortcutIconPath(__dirname),
+    });
+  } catch (error) {
+    console.error('Failed to start shortcut drag:', error);
+  }
+});
+
 app.whenReady().then(async () => {
   currentLocale = getAppLocale();
   i18n.changeLanguage(currentLocale);
   loadDeviceSettings();
+  registerCustomProtocol();
 
   app.setLoginItemSettings({ openAtLogin: deviceSettings.startupEnabled, path: process.execPath });
 
@@ -709,6 +774,7 @@ app.whenReady().then(async () => {
   await setupHotkeys();
 
   await refreshMenu();
+  await processSwitchRequest(parseSwitchRequestFromCommandLine(process.argv) || pendingSwitchRequest);
 });
 
 // 正常終了時

@@ -38,27 +38,29 @@
       margin-bottom: 12px;
       overflow: hidden;
     }
+
+    /* ヘッダは5列 */
     .table-header {
       display: grid;
-      grid-template-columns: 1fr 60px 140px 140px 64px;
+      grid-template-columns: 60px minmax(180px, 1fr) 140px 104px 64px;
       gap: 12px;
-      padding: 12px;
+      padding: 12px 16px;
       background: #f0f0f0;
       border-bottom: 1px solid #d1d1d1;
       font-weight: 600;
       font-size: 13px;
+      align-items: center;
     }
+
     .table-body {
       flex: 1;
       overflow-y: auto;
     }
+
+    /* 各デバイスは2段構成 */
     .table-row {
-      display: grid;
-      grid-template-columns: 1fr 60px 140px 140px 64px;
-      gap: 12px;
-      padding: 12px;
+      padding: 10px 16px 12px;
       border-bottom: 1px solid #e0e0e0;
-      align-items: center;
     }
     .table-row:last-child {
       border-bottom: none;
@@ -67,14 +69,30 @@
       background: #fafafa;
       opacity: 0.75;
     }
+
+    /* 上段: デバイス名 */
+    .device-name-row {
+      margin-bottom: 8px;
+    }
     .device-name {
       word-break: break-word;
       font-size: 14px;
+      font-weight: 600;
     }
     .device-name.unavailable {
       color: #999;
-      font-size: 12px;
+      font-size: 14px;
+      font-weight: 400;
     }
+
+    /* 下段: ヘッダと同じ5列 */
+    .device-fields-row {
+      display: grid;
+      grid-template-columns: 60px minmax(180px, 1fr) 140px 104px 64px;
+      gap: 12px;
+      align-items: center;
+    }
+
     .checkbox-col {
       display: flex;
       justify-content: center;
@@ -103,6 +121,26 @@
       border: 1px solid #ccc;
       border-radius: 4px;
       font-size: 13px;
+    }
+    .shortcut-col {
+      display: flex;
+      justify-content: center;
+    }
+    .shortcut-drag {
+      width: 100%;
+      padding: 6px 10px;
+      border: 1px dashed #7aa7d9;
+      border-radius: 6px;
+      background: #eef6ff;
+      color: #1f5da8;
+      font-size: 12px;
+      font-weight: 600;
+      text-align: center;
+      cursor: grab;
+      user-select: none;
+    }
+    .shortcut-drag:active {
+      cursor: grabbing;
     }
     .icon-color-col {
       display: flex;
@@ -262,17 +300,15 @@
       <span id="startupLabel"></span>
     </label>
   </div>
-  
-  <div class="description" id="description">
-    
-  </div>
+
+  <div class="description" id="description"></div>
 
   <div class="table-container">
     <div class="table-header">
-      <div id="deviceNameHeader"></div>
       <div id="visibleHeader" style="text-align: center;"></div>
       <div id="displayNameHeader"></div>
       <div id="hotkeyHeader"></div>
+      <div id="shortcutHeader" style="text-align: center;"></div>
       <div id="iconColorHeader"></div>
     </div>
     <div class="table-body" id="deviceList"></div>
@@ -306,11 +342,13 @@
       description: 'コンテキストメニューに表示するデバイスを設定します。',
       hotkeysLabel: 'Ctrl+Alt+上下キーでデバイスを選択',
       startupLabel: 'スタートアップに登録',
-      deviceNameHeader: 'デバイス名',
       visibleHeader: '表示',
       displayNameHeader: '表示名',
       hotkeyHeader: 'ホットキー',
-      iconColorHeader: 'アイコン色',
+      shortcutHeader: 'ショートカット',
+      shortcutDragLabel: 'D&D',
+      shortcutDragTitle: 'Windowsへドラッグしてショートカットを作成',
+      iconColorHeader: '色',
       selectColor: '色を選択',
       clearColor: '未設定に戻す',
       colorApply: 'OK',
@@ -337,10 +375,10 @@
       document.getElementById('description').textContent = t('description');
       document.getElementById('hotkeysLabel').textContent = t('hotkeysLabel');
       document.getElementById('startupLabel').textContent = t('startupLabel');
-      document.getElementById('deviceNameHeader').textContent = t('deviceNameHeader');
       document.getElementById('visibleHeader').textContent = t('visibleHeader');
       document.getElementById('displayNameHeader').textContent = t('displayNameHeader');
       document.getElementById('hotkeyHeader').textContent = t('hotkeyHeader');
+      document.getElementById('shortcutHeader').textContent = t('shortcutHeader');
       document.getElementById('iconColorHeader').textContent = t('iconColorHeader');
       document.getElementById('refreshBtnText').textContent = t('refresh');
       document.getElementById('saveBtnText').textContent = t('saveAndClose');
@@ -360,7 +398,7 @@
     }
 
     function escapeHtml(value) {
-      return value
+      return String(value)
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;')
@@ -398,6 +436,7 @@
         const hotkeySelect = `<select class="hotkey-select" data-device-id="${device.id}">
           ${hotkeyOptions.map(option => `<option value="${option.value}" ${option.value === hotkeyValue ? 'selected' : ''}>${option.label}</option>`).join('')}
         </select>`;
+        const dragDisplayName = escapeHtml((device.alias || device.name || t('unknownDevice')).trim());
 
         const colorUi = `
           <div class="icon-color-col">
@@ -407,18 +446,25 @@
 
         return `
           <div class="table-row${missingClass}" data-device-id="${device.id}">
-            <div class="device-name${!device.available ? ' unavailable' : ''}">${displayName}</div>
-            <div class="checkbox-col">
-              <input type="checkbox" class="hide-checkbox" ${!device.hidden ? 'checked' : ''}>
+            <div class="device-name-row">
+              <div class="device-name${!device.available ? ' unavailable' : ''}">${displayName}</div>
             </div>
-            <div class="alias-col">
-              <input type="text" class="alias-input" value="${aliasValue}" placeholder="${title}">
-            </div>
-            <div class="hotkey-col">
-              ${hotkeySelect}
-            </div>
-            <div>
-              ${colorUi}
+            <div class="device-fields-row">
+              <div class="checkbox-col">
+                <input type="checkbox" class="hide-checkbox" ${!device.hidden ? 'checked' : ''}>
+              </div>
+              <div class="alias-col">
+                <input type="text" class="alias-input" value="${aliasValue}" placeholder="${title}">
+              </div>
+              <div class="hotkey-col">
+                ${hotkeySelect}
+              </div>
+              <div class="shortcut-col">
+                <div class="shortcut-drag" draggable="true" title="${escapeHtml(t('shortcutDragTitle'))}" data-shortcut-name="${dragDisplayName}">${escapeHtml(t('shortcutDragLabel'))}</div>
+              </div>
+              <div>
+                ${colorUi}
+              </div>
             </div>
           </div>
         `;
@@ -440,7 +486,6 @@
       const selectedValue = changedSelect.value;
       if (selectedValue === HOTKEY_NONE_VALUE) return;
 
-      // 他のselectで同じ値が選択されているものを"なし"に
       const allSelects = document.querySelectorAll('.hotkey-select');
       allSelects.forEach(select => {
         if (select !== changedSelect && select.value === selectedValue) {
@@ -449,11 +494,44 @@
       });
     }
 
-    // イベントリスナーを設定
     document.addEventListener('change', (event) => {
       if (event.target.classList.contains('hotkey-select')) {
         handleHotkeyChange(event.target);
+        return;
       }
+
+      if (event.target.classList.contains('alias-input')) {
+        const row = event.target.closest('.table-row');
+        const shortcutEl = row ? row.querySelector('.shortcut-drag') : null;
+        if (shortcutEl) {
+          const rawName = event.target.value.trim() || event.target.placeholder || t('unknownDevice');
+          shortcutEl.dataset.shortcutName = rawName.trim();
+        }
+      }
+    });
+
+    document.addEventListener('dragstart', (event) => {
+      const dragHandle = event.target.closest('.shortcut-drag');
+      if (!dragHandle) {
+        return;
+      }
+
+      const row = dragHandle.closest('.table-row');
+      if (!row) {
+        return;
+      }
+
+      const aliasInput = row.querySelector('.alias-input');
+      const deviceName = row.querySelector('.device-name');
+      const displayName = (aliasInput && aliasInput.value.trim()) || (aliasInput && aliasInput.placeholder) || dragHandle.dataset.shortcutName || (deviceName ? deviceName.textContent.replace(/\s+\(.+?\)\s*$/, '').trim() : t('unknownDevice'));
+
+      // Electron's native file drag flow expects the renderer drag event
+      // to be cancelled before the main process starts the OS-level drag.
+      event.preventDefault();
+      window.settingsAPI.startShortcutDrag({
+        deviceId: row.dataset.deviceId,
+        displayName,
+      });
     });
 
     document.addEventListener('click', (event) => {
@@ -483,7 +561,7 @@
     async function loadSettings() {
       const result = await window.settingsAPI.getSettings();
       if (result.texts && typeof result.texts === 'object') {
-        texts = result.texts;
+        texts = { ...texts, ...result.texts };
       }
       applyLocaleTexts();
       devices = result.devices || [];
