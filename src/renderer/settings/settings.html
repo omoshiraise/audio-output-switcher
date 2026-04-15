@@ -172,48 +172,34 @@
       outline: 2px solid #4f94db;
       outline-offset: 1px;
     }
-    .icon-color-col {
+    .device-icon-col {
       display: flex;
       align-items: center;
-      gap: 6px;
+      justify-content: center;
     }
-    .icon-color-swatch {
-      width: 22px;
-      height: 22px;
-      border: 1px solid #999;
-      border-radius: 4px;
+    .device-icon-button {
+      width: 28px;
+      height: 28px;
+      border: 1px solid #b7bfd1;
+      border-radius: 6px;
       background: #fff;
       cursor: pointer;
-      padding: 0;
-      position: relative;
+      padding: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
-    .icon-color-swatch.is-empty::after {
-      content: '';
-      position: absolute;
-      left: 3px;
-      right: 3px;
-      top: 10px;
-      border-top: 1.5px solid #999;
-      transform: rotate(-40deg);
-      transform-origin: center;
+    .device-icon-button:hover {
+      border-color: #7f95b8;
+      background: #f7faff;
     }
-    .icon-color-clear {
-      width: 18px;
-      height: 18px;
-      border: 1px solid #bbb;
-      border-radius: 4px;
-      background: #fff;
-      color: #555;
-      font-size: 12px;
-      line-height: 1;
-      cursor: pointer;
-      padding: 0;
+    .device-icon-button img {
+      width: 20px;
+      height: 20px;
+      object-fit: contain;
+      pointer-events: none;
     }
-    .icon-color-clear:disabled {
-      opacity: 0.45;
-      cursor: default;
-    }
-    .color-popover {
+    .icon-popover {
       position: fixed;
       z-index: 9999;
       width: 196px;
@@ -223,47 +209,36 @@
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
       padding: 10px;
     }
-    .color-grid {
+    .icon-grid {
       display: grid;
-      grid-template-columns: repeat(8, 1fr);
+      grid-template-columns: repeat(5, 1fr);
       gap: 6px;
-      margin-bottom: 8px;
     }
-    .color-cell {
-      width: 18px;
-      height: 18px;
-      border: 1px solid rgba(0, 0, 0, 0.2);
-      border-radius: 4px;
-      padding: 0;
+    .icon-cell {
+      width: 30px;
+      height: 30px;
+      border: 1px solid #c3c9d7;
+      border-radius: 6px;
+      background: #fff;
+      padding: 3px;
       cursor: pointer;
-      background: transparent;
-    }
-    .color-custom-row {
       display: flex;
-      gap: 6px;
       align-items: center;
+      justify-content: center;
     }
-    .color-custom-row input {
-      flex: 1;
-      min-width: 0;
-      border: 1px solid #c7c7c7;
-      border-radius: 4px;
-      padding: 4px 6px;
-      font-size: 12px;
-      font-family: Consolas, monospace;
+    .icon-cell:hover {
+      border-color: #7f95b8;
+      background: #f7faff;
     }
-    .color-custom-row button {
-      padding: 4px 8px;
-      border-radius: 4px;
-      border: 1px solid #bcbcbc;
-      background: #f4f4f4;
-      color: #222;
-      font-size: 12px;
-      line-height: 1;
-      cursor: pointer;
+    .icon-cell.is-selected {
+      border-color: #4f94db;
+      box-shadow: 0 0 0 2px rgba(79, 148, 219, 0.18);
     }
-    .color-custom-row button:hover {
-      background: #eaeaea;
+    .icon-cell img {
+      width: 20px;
+      height: 20px;
+      object-fit: contain;
+      pointer-events: none;
     }
     .footer {
       display: flex;
@@ -338,7 +313,7 @@
       <div id="visibleHeader" style="text-align: center;"></div>
       <div id="displayNameHeader"></div>
       <div id="hotkeyHeader"></div>
-      <div id="iconColorHeader"></div>
+      <div id="iconHeader"></div>
       <div aria-hidden="true"></div>
     </div>
     <div class="table-body" id="deviceList"></div>
@@ -360,13 +335,14 @@
     </div>
   </div>
   <div id="status"></div>
-  <div id="colorPopoverRoot"></div>
+  <div id="iconPopoverRoot"></div>
 
-  <script src="./color-popover.js"></script>
+  <script src="./icon-popover.js"></script>
   <script>
     let devices = [];
+    let iconChoices = [];
     const HOTKEY_NONE_VALUE = '__none__';
-    let colorPopover = null;
+    let iconPopover = null;
     let texts = {
       title: '設定',
       description: 'コンテキストメニューに表示するデバイスを設定します。',
@@ -375,11 +351,9 @@
       visibleHeader: '表示',
       displayNameHeader: '表示名',
       hotkeyHeader: 'ホットキー',
+      iconHeader: 'アイコン',
+      selectIcon: 'アイコンを選択',
       shortcutDragTitle: 'Windowsへドラッグしてショートカットを作成',
-      iconColorHeader: '色',
-      selectColor: '色を選択',
-      clearColor: '未設定に戻す',
-      colorApply: 'OK',
       unknownDevice: '不明なデバイス',
       unavailableSuffix: '未接続',
       refresh: '更新',
@@ -406,22 +380,26 @@
       document.getElementById('visibleHeader').textContent = t('visibleHeader');
       document.getElementById('displayNameHeader').textContent = t('displayNameHeader');
       document.getElementById('hotkeyHeader').textContent = t('hotkeyHeader');
-      document.getElementById('iconColorHeader').textContent = t('iconColorHeader');
+      document.getElementById('iconHeader').textContent = t('iconHeader');
       document.getElementById('refreshBtnText').textContent = t('refresh');
       document.getElementById('saveBtnText').textContent = t('saveAndClose');
       document.getElementById('closeBtnText').textContent = t('close');
     }
 
-    function normalizeColor(value) {
-      const color = String(value || '').trim();
-      return /^#[0-9A-Fa-f]{6}$/.test(color) ? color : '';
+    function normalizeIconName(value) {
+      const iconName = String(value || '').trim();
+      if (!iconChoices.length) {
+        return iconName || 'speaker_pink';
+      }
+
+      return iconChoices.some(choice => choice.id === iconName)
+        ? iconName
+        : iconChoices[0].id;
     }
 
-    function createSwatchStyle(color) {
-      if (!color) {
-        return '';
-      }
-      return ` style="background:${color};"`;
+    function getIconChoice(iconName) {
+      const normalized = normalizeIconName(iconName);
+      return iconChoices.find(choice => choice.id === normalized) || iconChoices[0] || null;
     }
 
     function escapeHtml(value) {
@@ -444,7 +422,8 @@
         const title = escapeHtml(device.name || `(${t('unknownDevice')})`);
         const aliasValue = escapeHtml(device.alias || '');
         const hotkeyValue = device.hotkey || HOTKEY_NONE_VALUE;
-        const iconColorValue = normalizeColor(device.iconColor);
+        const iconNameValue = normalizeIconName(device.iconName);
+        const iconChoice = getIconChoice(iconNameValue);
         const missingClass = device.available ? '' : ' missing';
         const displayName = device.available ? title : `${title} (${escapeHtml(t('unavailableSuffix'))})`;
 
@@ -463,11 +442,13 @@
         const hotkeySelect = `<select class="hotkey-select" data-device-id="${device.id}">
           ${hotkeyOptions.map(option => `<option value="${option.value}" ${option.value === hotkeyValue ? 'selected' : ''}>${option.label}</option>`).join('')}
         </select>`;
-        const colorUi = `
-          <div class="icon-color-col">
-            <button type="button" class="icon-color-swatch${iconColorValue ? '' : ' is-empty'}" data-icon-color="${iconColorValue}" title="${escapeHtml(t('selectColor'))}"${createSwatchStyle(iconColorValue)}></button>
-            <button type="button" class="icon-color-clear" title="${escapeHtml(t('clearColor'))}" ${iconColorValue ? '' : 'disabled'}>x</button>
-          </div>`;
+        const iconUi = iconChoice ? `
+          <div class="device-icon-col">
+            <button type="button" class="device-icon-button" data-icon-name="${iconChoice.id}" title="${escapeHtml(t('selectIcon'))}">
+              <img src="${iconChoice.iconUrl}" alt="${iconChoice.id}">
+            </button>
+          </div>
+        ` : '';
 
         return `
           <div class="table-row${missingClass}" data-device-id="${device.id}">
@@ -485,7 +466,7 @@
                 ${hotkeySelect}
               </div>
               <div>
-                ${colorUi}
+                ${iconUi}
               </div>
               <div class="shortcut-col">
                 <div class="shortcut-drag" draggable="true" role="button" tabindex="0" title="${escapeHtml(t('shortcutDragTitle'))}"></div>
@@ -496,15 +477,17 @@
       }).join('');
     }
 
-    function updateIconColorUi(columnEl, color) {
-      const normalized = normalizeColor(color);
-      const swatch = columnEl.querySelector('.icon-color-swatch');
-      const clearBtn = columnEl.querySelector('.icon-color-clear');
+    function updateIconUi(columnEl, iconName) {
+      const button = columnEl.querySelector('.device-icon-button');
+      const img = button ? button.querySelector('img') : null;
+      const choice = getIconChoice(iconName);
+      if (!button || !img || !choice) {
+        return;
+      }
 
-      swatch.dataset.iconColor = normalized;
-      swatch.style.background = normalized || '#fff';
-      swatch.classList.toggle('is-empty', !normalized);
-      clearBtn.disabled = !normalized;
+      button.dataset.iconName = choice.id;
+      img.src = choice.iconUrl;
+      img.alt = choice.id;
     }
 
     function handleHotkeyChange(changedSelect) {
@@ -543,6 +526,7 @@
 
       const aliasInput = row.querySelector('.alias-input');
       const deviceName = row.querySelector('.device-name');
+      const iconButton = row.querySelector('.device-icon-button');
       const displayName = (aliasInput && aliasInput.value.trim()) || (aliasInput && aliasInput.placeholder) || (deviceName ? deviceName.textContent.replace(/\s+\(.+?\)\s*$/, '').trim() : t('unknownDevice'));
 
       // Electron's native file drag flow expects the renderer drag event
@@ -551,30 +535,23 @@
       window.settingsAPI.startShortcutDrag({
         deviceId: row.dataset.deviceId,
         displayName,
+        iconName: normalizeIconName(iconButton ? iconButton.dataset.iconName : ''),
       });
     });
 
     document.addEventListener('click', (event) => {
-      if (event.target.classList.contains('icon-color-swatch')) {
+      const iconButton = event.target.closest('.device-icon-button');
+      if (iconButton) {
         event.preventDefault();
         event.stopPropagation();
-        const columnEl = event.target.closest('.icon-color-col');
-        const swatch = columnEl.querySelector('.icon-color-swatch');
-        const currentColor = normalizeColor(swatch ? swatch.dataset.iconColor : '');
-        colorPopover.open({
+        const columnEl = iconButton.closest('.device-icon-col');
+        iconPopover.open({
           anchorEvent: event,
-          currentColor,
-          onSelect: color => updateIconColorUi(columnEl, color),
+          iconChoices,
+          currentIconName: iconButton.dataset.iconName,
+          onSelect: iconName => updateIconUi(columnEl, iconName),
         });
         return;
-      }
-
-      if (event.target.classList.contains('icon-color-clear')) {
-        event.preventDefault();
-        event.stopPropagation();
-        colorPopover.close();
-        const columnEl = event.target.closest('.icon-color-col');
-        updateIconColorUi(columnEl, '');
       }
     });
 
@@ -583,6 +560,7 @@
       if (result.texts && typeof result.texts === 'object') {
         texts = { ...texts, ...result.texts };
       }
+      iconChoices = result.iconChoices || [];
       applyLocaleTexts();
       devices = result.devices || [];
       document.getElementById('hotkeysEnabled').checked = result.hotkeysEnabled || false;
@@ -600,9 +578,9 @@
           const visible = row.querySelector('.hide-checkbox').checked;
           const alias = row.querySelector('.alias-input').value.trim();
           const hotkey = row.querySelector('.hotkey-select').value;
-          const swatch = row.querySelector('.icon-color-swatch');
-          const iconColor = normalizeColor(swatch ? swatch.dataset.iconColor : '');
-          return { id, hidden: !visible, alias, hotkey, iconColor };
+          const iconButton = row.querySelector('.device-icon-button');
+          const iconName = normalizeIconName(iconButton ? iconButton.dataset.iconName : '');
+          return { id, hidden: !visible, alias, hotkey, iconName };
         });
         const payload = {
           deviceUpdates,
@@ -641,10 +619,9 @@
 
     (async () => {
       try {
-        colorPopover = new window.ColorPopover({
-          root: document.getElementById('colorPopoverRoot'),
+        iconPopover = new window.IconPopover({
+          root: document.getElementById('iconPopoverRoot'),
           getText: t,
-          normalizeColor,
         });
         await loadSettings();
       } catch (err) {

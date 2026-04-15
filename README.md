@@ -15,10 +15,11 @@ You can still assign hotkeys to hidden devices, which is useful when you want to
 - Switch devices from the tray icon
 - Hide or set aliases for devices in the settings dialog
 - Assign per-device global hotkeys from settings
-- Set a per-device tray icon background color so the selected device is easy to identify visually
+- Set a different tray icon for each device so the selected device is easy to identify visually
+- Place per-device shortcuts on the desktop or elsewhere so you can switch devices even without relying on the tray icon
 - Keep hotkey/alias/visibility settings even if a device is temporarily unavailable
-- Keep hotkeys active for hidden devices (unavailable devices are ignored)
-- Detect and show hotkey conflicts
+- Apply hotkeys to hidden devices as well (unavailable devices are ignored)
+- Detect and show hotkey conflicts with other apps
 - Optional startup registration
 - Small popup notification (no system notification sound)
 
