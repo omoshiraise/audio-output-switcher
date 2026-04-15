@@ -48,15 +48,20 @@ You can also place shortcuts on the desktop or elsewhere that switch directly to
 
 ### Settings Dialog
 
-- **Visible**: Show/hide devices in the tray menu
-- **Display Name**: Set an alias for the device
-- **Hotkey**: Assign a direct-switch hotkey for each device (e.g. None, Ctrl+Alt+Home, Shift+Alt+PageUp, etc.)
-- **Hotkeys Enabled**: Enable/disable global hotkeys
+- **Ctrl+Alt+Up/Down to switch devices**: Enable/disable device switching with Ctrl+Alt+Up/Down
 - **Launch at startup**: Register/unregister startup
 - **Refresh**: Reload the device list
 - **Save and Close**: Save settings and apply immediately
 
-### Hotkey Behavior
+#### Within the device list
+
+- **Visible**: Show/hide devices in the tray menu
+- **Display Name**: Set an alias for the device
+- **Hotkey**: Assign a direct-switch hotkey for each device (e.g. None, Ctrl+Alt+Home, Shift+Alt+PageUp, etc.)
+- **Icon**: Choose the task tray icon used when that device is selected<br>
+  Drag and drop the shortcut icon on the right to the desktop or elsewhere to create a shortcut that switches to that device
+
+#### Hotkey Behavior
 
 - Duplicate per-device hotkeys are resolved by last selection (previous assignment becomes `None`)
 - Per-device hotkeys can switch hidden devices
