@@ -9,6 +9,7 @@ You can also assign devices to hotkeys and switch them by keyboard.
 Display names (aliases) can be set for each device to make selection intuitive.
 Rarely used devices can be hidden to reduce menu clutter.
 You can still assign hotkeys to hidden devices, which is useful when you want to select devices that are not part of your usual menu choices only for specific tasks.
+You can also place shortcuts on the desktop or elsewhere that switch directly to a specific device.
 
 ## Features
 
