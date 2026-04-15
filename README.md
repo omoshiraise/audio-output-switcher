@@ -86,14 +86,16 @@ npm run make
 ### Project Structure
 
 ```
+resources/
+├── speaker_pink.ico         # Default application icon
+└── speaker_*.ico            # Icon set for devices, tray icons, and shortcuts
+
 src/
-├── assets/
-│   └── icons/
-│       └── speaker_tray.svg
 ├── main/
 │   ├── main.js               # Electron main process entry
 │   ├── audio-selector.js     # Audio device operations
-│   ├── tray-icon-manager.js  # Tray icon loading/rendering
+│   ├── device-shortcuts.js   # Per-device shortcut generation
+│   ├── tray-icon-manager.js  # ICO-based tray icon management
 │   └── tray-popup.js         # Small popup window controller
 ├── preload/
 │   ├── about-preload.js
@@ -105,7 +107,7 @@ src/
 │   ├── popup/
 │   │   └── popup.html
 │   └── settings/
-│       ├── color-popover.js
+│       ├── icon-popover.js
 │       └── settings.html
 └── shared/
   └── locales/
