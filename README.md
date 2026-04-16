@@ -4,12 +4,24 @@
 
 An audio output device switcher for Windows 10/11.
 Among many similar tools, this one was built to feel just right.
+
+## Overview
+
+Supports multiple languages.
+
 You can easily switch the default audio output device from the tray icon.
-You can also assign devices to hotkeys and switch them by keyboard.
-Display names (aliases) can be set for each device to make selection intuitive.
-Rarely used devices can be hidden to reduce menu clutter.
-You can still assign hotkeys to hidden devices, which is useful when you want to select devices that are not part of your usual menu choices only for specific tasks.
 You can also place shortcuts on the desktop or elsewhere that switch directly to a specific device.
+You can set a different icon color for each device, so the selected device is easy to identify at a glance.
+
+![Context menu](docs/images/menu.png)
+![Desktop shortcut](docs/images/desktop.png)
+
+You can set display names (aliases) for devices to make selection intuitive.
+You can hide rarely used devices to reduce menu clutter.
+You can also assign devices to hotkeys and switch them by keyboard.
+Hidden devices can still be assigned hotkeys, which is useful when you want to select devices that are not part of your usual menu choices only for specific tasks.
+
+![Settings dialog](docs/images/settings.png)
 
 ## Features
 
