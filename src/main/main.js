@@ -776,6 +776,7 @@ ipcMain.on('shortcut:drag-start', (event, payload) => {
 
 app.whenReady().then(async () => {
   currentLocale = getAppLocale();
+  currentLocale = 'en';
   i18n.changeLanguage(currentLocale);
   loadDeviceSettings();
   registerCustomProtocol();
