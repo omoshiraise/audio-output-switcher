@@ -9,16 +9,16 @@ Among many similar tools, this one was built to feel just right.
 
 Supports multiple languages.
 
-You can easily switch the default audio output device from the tray icon.
-You can also place shortcuts on the desktop or elsewhere that switch directly to a specific device.
-You can set a different icon color for each device, so the selected device is easy to identify at a glance.
+Easily switch the default audio output device from the tray icon.
+Place shortcuts on the desktop or elsewhere that switch directly to a specific device.
+Set a different icon color for each device, so the selected device is easy to identify at a glance.
 
 ![Context menu](docs/images/en/menu.png)
 ![Desktop shortcut](docs/images/en/desktop.png)
 
-You can set display names (aliases) for devices to make selection intuitive.
-You can hide rarely used devices to reduce menu clutter.
-You can also assign devices to hotkeys and switch them by keyboard.
+Set display names (aliases) for devices to make selection intuitive.
+Hide rarely used devices to reduce menu clutter.
+Assign devices to hotkeys and switch them by keyboard.
 Hidden devices can still be assigned hotkeys, which is useful when you want to select devices that are not part of your usual menu choices only for specific tasks.
 
 ![Settings dialog](docs/images/en/settings.png)
