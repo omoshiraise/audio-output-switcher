@@ -750,6 +750,11 @@ ipcMain.handle('about:get', async () => {
 });
 
 ipcMain.on('shortcut:drag-start', (event, payload) => {
+  if (!app.isPackaged) {
+    //デバッグ環境ではショートカットのドラッグをサポートしない
+    return;
+  }
+
   const deviceId = String(payload && payload.deviceId ? payload.deviceId : '').trim();
   const displayName = String(payload && payload.displayName ? payload.displayName : '').trim();
   const iconName = normalizeIconName(payload && payload.iconName);

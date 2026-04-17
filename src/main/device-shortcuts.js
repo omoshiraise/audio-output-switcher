@@ -2,9 +2,10 @@
 
 const fs = require('fs');
 const path = require('path');
+const { shell } = require('electron');
 
 const CUSTOM_PROTOCOL = 'audio-output-switcher';
-const SHORTCUT_FILE_EXTENSION = '.url';
+const SHORTCUT_FILE_EXTENSION = '.lnk';
 const SHORTCUT_TEMP_DIR = 'audio-output-switcher-shortcuts';
 
 function sanitizeShortcutFileName(value) {
@@ -67,21 +68,47 @@ function getShortcutIconPath(iconPath) {
   return process.execPath;
 }
 
+function getRootExecutablePath() {
+  const currentExecPath = process.execPath;
+  const execDirName = path.basename(path.dirname(currentExecPath));
+  if (execDirName.startsWith('app-')) {
+    return path.join(path.dirname(path.dirname(currentExecPath)), path.basename(currentExecPath));
+  }
+  return currentExecPath;
+}
+
 function writeShortcutFile({ app, iconPath, deviceId, displayName }) {
+  if (!app.isPackaged) {
+    throw new Error('Shortcut creation is only supported in packaged builds.');
+  }
+
   const shortcutDir = path.join(app.getPath('temp'), SHORTCUT_TEMP_DIR);
   fs.mkdirSync(shortcutDir, { recursive: true });
 
   const safeName = sanitizeShortcutFileName(displayName);
   const shortcutPath = path.join(shortcutDir, `${safeName}${SHORTCUT_FILE_EXTENSION}`);
-  const shortcutContents = [
-    '[InternetShortcut]',
-    `URL=${buildShortcutUrl(deviceId, displayName)}`,
-    `IconFile=${getShortcutIconPath(iconPath)}`,
-    'IconIndex=0',
-    '',
-  ].join('\r\n');
 
-  fs.writeFileSync(shortcutPath, shortcutContents, 'utf8');
+  if (process.platform !== 'win32') {
+    throw new Error('Shortcut creation is supported only on Windows.');
+  }
+
+  const shortcutUrl = buildShortcutUrl(deviceId, displayName);
+  const targetPath = getRootExecutablePath();
+  const workingDir = path.dirname(targetPath);
+
+  const success = shell.writeShortcutLink(shortcutPath, 'create', {
+    target: targetPath,
+    args: shortcutUrl,
+    icon: getShortcutIconPath(iconPath),
+    iconIndex: 0,
+    description: displayName,
+    workingDirectory: workingDir,
+  });
+
+  if (!success) {
+    throw new Error(`Failed to create Windows shortcut: ${shortcutPath}`);
+  }
+
   return shortcutPath;
 }
 
