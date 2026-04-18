@@ -29,7 +29,7 @@ Hidden devices can still be assigned hotkeys, which is useful when you want to s
 - Hide or set aliases for devices in the settings dialog
 - Assign per-device global hotkeys from settings
 - Set a different tray icon for each device so the selected device is easy to identify visually
-- Place per-device shortcuts on the desktop or elsewhere so you can switch devices even without relying on the tray icon
+- Place per-device shortcuts on the desktop, taskbar, or elsewhere so you can switch devices even without relying on the tray icon
 - Keep hotkey/alias/visibility settings even if a device is temporarily unavailable
 - Apply hotkeys to hidden devices as well (unavailable devices are ignored)
 - Detect and show hotkey conflicts with other apps
@@ -46,6 +46,7 @@ Hidden devices can still be assigned hotkeys, which is useful when you want to s
 - Run the installer `.exe` file to install the application.
   After a successful install, a desktop shortcut is created and the app starts running.
   If you plan to use it continuously, click the tray icon, open **Settings...**, and enable **Launch at startup**.
+- To make the selected device easy to identify by tray icon color, we recommend enabling the app in Windows Settings > Personalization > Taskbar > Other system tray icons. Dragging the tray icon into the always-shown area has the same effect.
 - The installer is not code-signed, so you may see a "Windows protected your PC" SmartScreen warning.
   If that happens, click **More info** and then click the **Run anyway** button.
   For your safety, please only use an installer you downloaded from the official source.
@@ -53,7 +54,6 @@ Hidden devices can still be assigned hotkeys, which is useful when you want to s
 ## Usage
 
 1. When you launch the app, a tray icon will appear.
-  - We recommend enabling it in Windows Settings > Personalization > Taskbar > Other system tray icons to keep it visible.
 2. Click the tray icon to open the context menu.
 3. Select the device you want to switch to.
 4. To change settings, select "Settings...".
@@ -70,8 +70,8 @@ Hidden devices can still be assigned hotkeys, which is useful when you want to s
 - **Visible**: Show/hide devices in the tray menu
 - **Display Name**: Set an alias for the device
 - **Hotkey**: Assign a direct-switch hotkey for each device (e.g. None, Ctrl+Alt+Home, Shift+Alt+PageUp, etc.)
-- **Icon**: Choose the task tray icon used when that device is selected<br>
-  Drag and drop the shortcut icon on the right to the desktop or elsewhere to create a shortcut that switches to that device
+- **Icon**: Choose the task tray icon color used when that device is selected<br>
+  Drag and drop the icon to the desktop, taskbar, or elsewhere to create a shortcut that switches to that device
 
 #### Hotkey Behavior
 

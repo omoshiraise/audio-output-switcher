@@ -581,9 +581,12 @@ function teardownHotkeys() {
 
 function createMenuSignature(template) {
   return JSON.stringify(template.map(item => ({
+    id: item.id || null,
     label: item.label || null,
     type: item.type || null,
     enabled: Boolean(item.enabled),
+    checked: Boolean(item.checked),
+    menuSignature: item.menuSignature || null,
   })));
 }
 
@@ -612,11 +615,13 @@ async function buildMenuTemplate() {
 
   const deviceItems = visibleDevices.map(device => {
     const isDefault = device.id === result.defaultDeviceId;
-    const marker = isDefault ? '┃ ' : '  ';
-    const label = `${marker}${device.alias || device.name}`;
+    const label = device.alias || device.name;
 
     return {
+      id: `device:${device.id}`,
       label,
+      icon: trayIconManager.buildMenuItemIcon(device.iconName, { selected: isDefault }),
+      menuSignature: `${device.id}:${normalizeIconName(device.iconName)}:${isDefault ? 'default' : 'normal'}`,
       click: async () => {
         if (isDefault) return;
         try {
