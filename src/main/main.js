@@ -8,7 +8,6 @@ const { pathToFileURL } = require('url');
 const i18n = require('i18next');
 const { AudioSelector } = require('./audio-selector');
 const {
-  getShortcutIconPath,
   parseSwitchRequestFromCommandLine,
   registerCustomProtocol: registerShortcutProtocol,
   writeShortcutFile,
@@ -148,6 +147,26 @@ function getResourcesDir() {
 
 function getDeviceIconPath(iconName) {
   return path.join(getResourcesDir(), `${normalizeIconName(iconName)}.ico`);
+}
+
+function getShortcutIconCacheDir() {
+  return path.join(app.getPath('userData'), 'shortcut-icons');
+}
+
+function getStableShortcutIconPath(iconName) {
+  const normalizedIconName = normalizeIconName(iconName);
+  const sourcePath = getDeviceIconPath(normalizedIconName);
+  const cacheDir = getShortcutIconCacheDir();
+  const cachedIconPath = path.join(cacheDir, `${normalizedIconName}.ico`);
+
+  try {
+    fs.mkdirSync(cacheDir, { recursive: true });
+    fs.copyFileSync(sourcePath, cachedIconPath);
+    return cachedIconPath;
+  } catch (error) {
+    console.warn('Failed to cache shortcut icon, falling back to bundled icon:', error);
+    return sourcePath;
+  }
 }
 
 function getDeviceIconChoices() {
@@ -768,7 +787,7 @@ ipcMain.on('shortcut:drag-start', (event, payload) => {
   }
 
   try {
-    const iconPath = getDeviceIconPath(iconName);
+    const iconPath = getStableShortcutIconPath(iconName);
     const shortcutPath = writeShortcutFile({
       app,
       iconPath,
