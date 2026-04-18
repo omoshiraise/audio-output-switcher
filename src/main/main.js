@@ -317,7 +317,6 @@ function getSettingsTexts() {
     hotkeyHeader: i18n.t('hotkeyHeader'),
     iconHeader: i18n.t('iconHeader', { defaultValue: 'Icon' }),
     selectIcon: i18n.t('selectIcon', { defaultValue: 'Select icon' }),
-    shortcutDragTitle: i18n.t('shortcutDragTitle', { defaultValue: 'Drag to Windows to create a shortcut' }),
     unknownDevice: i18n.t('unknownDevice'),
     unavailableSuffix: i18n.t('unavailableSuffix'),
     noneHotkey: i18n.t('noneHotkey'),
@@ -752,6 +751,7 @@ ipcMain.handle('about:get', async () => {
 ipcMain.on('shortcut:drag-start', (event, payload) => {
   if (!app.isPackaged) {
     //デバッグ環境ではショートカットのドラッグをサポートしない
+    console.log('Shortcut drag is not supported in debug environment.');
     return;
   }
 

@@ -39,10 +39,10 @@
       overflow: hidden;
     }
 
-    /* ヘッダは5列 */
+    /* ヘッダは4列 */
     .table-header {
       display: grid;
-      grid-template-columns: 60px minmax(180px, 1fr) 140px 64px 40px;
+      grid-template-columns: 60px minmax(180px, 1fr) 140px 64px;
       gap: 12px;
       padding: 12px 16px;
       background: #f0f0f0;
@@ -85,10 +85,10 @@
       font-weight: 400;
     }
 
-    /* 下段: ヘッダと同じ5列 */
+    /* 下段: ヘッダと同じ4列 */
     .device-fields-row {
       display: grid;
-      grid-template-columns: 60px minmax(180px, 1fr) 140px 64px 40px;
+      grid-template-columns: 60px minmax(180px, 1fr) 140px 64px;
       gap: 12px;
       align-items: center;
     }
@@ -121,56 +121,6 @@
       border: 1px solid #ccc;
       border-radius: 4px;
       font-size: 13px;
-    }
-    .shortcut-col {
-      display: flex;
-      justify-content: center;
-    }
-    .shortcut-drag {
-      width: 28px;
-      height: 28px;
-      border: 1px solid #aac6e6;
-      border-radius: 7px;
-      background: linear-gradient(180deg, #f8fbff 0%, #e9f3ff 100%);
-      color: #1f5da8;
-      cursor: grab;
-      user-select: none;
-      position: relative;
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
-    }
-    .shortcut-drag:active {
-      cursor: grabbing;
-    }
-    .shortcut-drag::before {
-      content: '';
-      position: absolute;
-      left: 7px;
-      top: 5px;
-      width: 12px;
-      height: 15px;
-      border: 1px solid currentColor;
-      border-radius: 2px;
-      background: #fff;
-      box-shadow: 2px -2px 0 -1px rgba(255, 255, 255, 0.95);
-    }
-    .shortcut-drag::after {
-      content: '';
-      position: absolute;
-      left: 2px;
-      bottom: 2px;
-      width: 11px;
-      height: 11px;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 11 11' fill='none'%3E%3Cpolyline points='3,8 8,3' stroke='%231f5da8' stroke-width='1.5' stroke-linecap='round'/%3E%3Cpolyline points='4,3 8,3 8,7' stroke='%231f5da8' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-size: 11px 11px;
-    }
-    .shortcut-drag:hover {
-      border-color: #6b9bd1;
-      background: linear-gradient(180deg, #ffffff 0%, #dfeeff 100%);
-    }
-    .shortcut-drag:focus-visible {
-      outline: 2px solid #4f94db;
-      outline-offset: 1px;
     }
     .device-icon-col {
       display: flex;
@@ -314,7 +264,6 @@
       <div id="displayNameHeader"></div>
       <div id="hotkeyHeader"></div>
       <div id="iconHeader"></div>
-      <div aria-hidden="true"></div>
     </div>
     <div class="table-body" id="deviceList"></div>
   </div>
@@ -352,8 +301,7 @@
       displayNameHeader: '表示名',
       hotkeyHeader: 'ホットキー',
       iconHeader: 'アイコン',
-      selectIcon: 'アイコンを選択',
-      shortcutDragTitle: 'Windowsへドラッグしてショートカットを作成',
+      selectIcon: 'アイコンを選択 (ドラッグしてショートカット作成)',
       unknownDevice: '不明なデバイス',
       unavailableSuffix: '未接続',
       refresh: '更新',
@@ -444,7 +392,7 @@
         </select>`;
         const iconUi = iconChoice ? `
           <div class="device-icon-col">
-            <button type="button" class="device-icon-button" data-icon-name="${iconChoice.id}" title="${escapeHtml(t('selectIcon'))}">
+            <button type="button" class="device-icon-button" data-icon-name="${iconChoice.id}" title="${escapeHtml(t('selectIcon'))}" draggable="true">
               <img src="${iconChoice.iconUrl}" alt="${iconChoice.id}">
             </button>
           </div>
@@ -467,9 +415,6 @@
               </div>
               <div>
                 ${iconUi}
-              </div>
-              <div class="shortcut-col">
-                <div class="shortcut-drag" draggable="true" role="button" tabindex="0" title="${escapeHtml(t('shortcutDragTitle'))}"></div>
               </div>
             </div>
           </div>
@@ -514,7 +459,7 @@
     });
 
     document.addEventListener('dragstart', (event) => {
-      const dragHandle = event.target.closest('.shortcut-drag');
+      const dragHandle = event.target.closest('.device-icon-button');
       if (!dragHandle) {
         return;
       }
@@ -526,7 +471,6 @@
 
       const aliasInput = row.querySelector('.alias-input');
       const deviceName = row.querySelector('.device-name');
-      const iconButton = row.querySelector('.device-icon-button');
       const displayName = (aliasInput && aliasInput.value.trim()) || (aliasInput && aliasInput.placeholder) || (deviceName ? deviceName.textContent.replace(/\s+\(.+?\)\s*$/, '').trim() : t('unknownDevice'));
 
       // Electron's native file drag flow expects the renderer drag event
@@ -535,7 +479,7 @@
       window.settingsAPI.startShortcutDrag({
         deviceId: row.dataset.deviceId,
         displayName,
-        iconName: normalizeIconName(iconButton ? iconButton.dataset.iconName : ''),
+        iconName: normalizeIconName(dragHandle.dataset.iconName),
       });
     });
 
