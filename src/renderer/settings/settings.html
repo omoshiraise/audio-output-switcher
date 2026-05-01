@@ -379,12 +379,13 @@
 
     function renderDeviceList() {
       const container = document.getElementById('deviceList');
-      if (!devices.length) {
+      const visibleDevices = devices.filter(device => !device.staleUnknown);
+      if (!visibleDevices.length) {
         container.innerHTML = `<div style="padding: 16px; text-align: center; color: #999;">${t('noDevices')}</div>`;
         return;
       }
 
-      container.innerHTML = devices.map(device => {
+      container.innerHTML = visibleDevices.map(device => {
         const title = escapeHtml(device.name || `(${t('unknownDevice')})`);
         const aliasValue = escapeHtml(device.alias || '');
         const hotkeyValue = device.hotkey || HOTKEY_NONE_VALUE;
@@ -417,7 +418,7 @@
         ` : '';
 
         return `
-          <div class="table-row${missingClass}" data-device-id="${device.id}">
+          <div class="table-row${missingClass}" data-device-id="${device.id}" data-device-name="${device.available ? title : ''}" data-device-available="${device.available ? 'true' : 'false'}">
             <div class="device-name-row">
               <div class="device-name${!device.available ? ' unavailable' : ''}">${displayName}</div>
             </div>
@@ -537,12 +538,14 @@
         const rows = Array.from(document.querySelectorAll('.table-row'));
         const deviceUpdates = rows.map(row => {
           const id = row.dataset.deviceId;
+          const name = row.dataset.deviceName || '';
+          const available = row.dataset.deviceAvailable === 'true';
           const visible = row.querySelector('.hide-checkbox').checked;
           const alias = row.querySelector('.alias-input').value.trim();
           const hotkey = row.querySelector('.hotkey-select').value;
           const iconButton = row.querySelector('.device-icon-button');
           const iconName = normalizeIconName(iconButton ? iconButton.dataset.iconName : '');
-          return { id, hidden: !visible, alias, hotkey, iconName };
+          return { id, name, available, hidden: !visible, alias, hotkey, iconName };
         });
         const payload = {
           deviceUpdates,

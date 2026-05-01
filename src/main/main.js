@@ -117,6 +117,10 @@ const DEVICE_ICON_OPTIONS = Object.freeze([
 ]);
 let pendingSwitchRequest = null;
 
+function createDefaultDeviceSettings() {
+  return { alias: '', hidden: false, hotkey: HOTKEY_NONE_VALUE, iconName: DEFAULT_DEVICE_ICON_NAME, lastKnownName: '' };
+}
+
 function normalizeHotkey(value) {
   let hotkey = String(value || '').trim();
   if (!hotkey || hotkey === HOTKEY_NONE_VALUE) {
@@ -271,7 +275,7 @@ function loadDeviceSettings() {
   // Ensure each device has a normalized hotkey value.
   Object.keys(deviceSettings.devices).forEach(id => {
     if (!deviceSettings.devices[id] || typeof deviceSettings.devices[id] !== 'object') {
-      deviceSettings.devices[id] = { alias: '', hidden: false, hotkey: HOTKEY_NONE_VALUE, iconName: DEFAULT_DEVICE_ICON_NAME };
+      deviceSettings.devices[id] = createDefaultDeviceSettings();
       return;
     }
     if (!deviceSettings.devices[id].hotkey) {
@@ -284,6 +288,7 @@ function loadDeviceSettings() {
       delete deviceSettings.devices[id].iconColor;
     }
     deviceSettings.devices[id].iconName = normalizeIconName(deviceSettings.devices[id].iconName);
+    deviceSettings.devices[id].lastKnownName = String(deviceSettings.devices[id].lastKnownName || '').trim();
   });
 
   return deviceSettings;
@@ -298,8 +303,57 @@ function saveDeviceSettings() {
   fs.writeFileSync(settingsPath, JSON.stringify(deviceSettings, null, 2), 'utf8');
 }
 
+function maybeMigrateReidentifiedDevice(currentDevices) {
+  const currentMap = new Map(currentDevices.map(device => [device.id, device]));
+  const savedIds = Object.keys(deviceSettings.devices);
+  const missingSavedIds = savedIds.filter(id => !currentMap.has(id));
+  const newCurrentDevices = currentDevices.filter(device => !deviceSettings.devices[device.id]);
+
+  if (missingSavedIds.length !== 1 || newCurrentDevices.length !== 1) {
+    return false;
+  }
+
+  const oldId = missingSavedIds[0];
+  const newDevice = newCurrentDevices[0];
+  const oldSettings = deviceSettings.devices[oldId];
+  const oldName = String(oldSettings.lastKnownName || oldSettings.alias || '').trim();
+  const newName = String(newDevice.name || '').trim();
+
+  if (!oldName || !newName || oldName !== newName) {
+    return false;
+  }
+
+  deviceSettings.devices[newDevice.id] = {
+    ...oldSettings,
+    lastKnownName: newName,
+  };
+  delete deviceSettings.devices[oldId];
+  saveDeviceSettings();
+  return true;
+}
+
+function updateLastKnownDeviceNames(currentDevices) {
+  let changed = false;
+  currentDevices.forEach(device => {
+    const settings = deviceSettings.devices[device.id];
+    const deviceName = String(device.name || '').trim();
+    if (!settings || !deviceName || settings.lastKnownName === deviceName) {
+      return;
+    }
+
+    settings.lastKnownName = deviceName;
+    changed = true;
+  });
+
+  if (changed) {
+    saveDeviceSettings();
+  }
+}
+
 function getMergedDeviceList(currentDevices) {
   loadDeviceSettings();
+  maybeMigrateReidentifiedDevice(currentDevices);
+  updateLastKnownDeviceNames(currentDevices);
   const currentMap = new Map(currentDevices.map(device => [device.id, device]));
   const savedIds = Object.keys(deviceSettings.devices);
   const mergedIds = new Set([...currentMap.keys(), ...savedIds]);
@@ -307,8 +361,10 @@ function getMergedDeviceList(currentDevices) {
   const merged = [];
   mergedIds.forEach(id => {
     const current = currentMap.get(id);
-    const settings = deviceSettings.devices[id] || { alias: '', hidden: false, hotkey: HOTKEY_NONE_VALUE, iconName: DEFAULT_DEVICE_ICON_NAME };
-    const name = current ? current.name : (settings.alias || '不明なデバイス');
+    const settings = deviceSettings.devices[id] || createDefaultDeviceSettings();
+    const lastKnownName = String(settings.lastKnownName || '').trim();
+    const staleUnknown = !current && !lastKnownName && !settings.alias;
+    const name = current ? current.name : (lastKnownName || settings.alias || '不明なデバイス');
     merged.push({
       id,
       name,
@@ -317,6 +373,7 @@ function getMergedDeviceList(currentDevices) {
       hotkey: settings.hotkey || HOTKEY_NONE_VALUE,
       iconName: normalizeIconName(settings.iconName),
       available: Boolean(current),
+      staleUnknown,
     });
   });
 
@@ -741,12 +798,15 @@ ipcMain.handle('settings:update', async (_event, updates) => {
   deviceUpdates.forEach(update => {
     const id = update.id;
     if (!deviceSettings.devices[id]) {
-      deviceSettings.devices[id] = { alias: '', hidden: false, hotkey: HOTKEY_NONE_VALUE, iconName: DEFAULT_DEVICE_ICON_NAME };
+      deviceSettings.devices[id] = createDefaultDeviceSettings();
     }
     deviceSettings.devices[id].hidden = Boolean(update.hidden);
     deviceSettings.devices[id].alias = String(update.alias || '').trim();
     deviceSettings.devices[id].hotkey = normalizeHotkey(update.hotkey);
     deviceSettings.devices[id].iconName = normalizeIconName(update.iconName);
+    if (update.available) {
+      deviceSettings.devices[id].lastKnownName = String(update.name || deviceSettings.devices[id].lastKnownName || '').trim();
+    }
   });
 
   if (updates.hotkeysEnabled !== undefined) {
