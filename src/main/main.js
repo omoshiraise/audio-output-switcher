@@ -258,11 +258,14 @@ function loadDeviceSettings() {
     const json = fs.readFileSync(settingsPath, 'utf8');
     deviceSettings = JSON.parse(json);
   } catch (err) {
-    deviceSettings = { devices: {}, hotkeysEnabled: false, startupEnabled: false };
+    deviceSettings = { devices: {}, deviceIdAliases: {}, hotkeysEnabled: false, startupEnabled: false };
   }
 
   if (!deviceSettings.devices || typeof deviceSettings.devices !== 'object') {
     deviceSettings.devices = {};
+  }
+  if (!deviceSettings.deviceIdAliases || typeof deviceSettings.deviceIdAliases !== 'object') {
+    deviceSettings.deviceIdAliases = {};
   }
   if (typeof deviceSettings.hotkeysEnabled !== 'boolean') {
     deviceSettings.hotkeysEnabled = false;
@@ -291,6 +294,15 @@ function loadDeviceSettings() {
     deviceSettings.devices[id].lastKnownName = String(deviceSettings.devices[id].lastKnownName || '').trim();
   });
 
+  Object.keys(deviceSettings.deviceIdAliases).forEach(oldId => {
+    const newId = String(deviceSettings.deviceIdAliases[oldId] || '').trim();
+    if (!oldId || !newId || oldId === newId) {
+      delete deviceSettings.deviceIdAliases[oldId];
+      return;
+    }
+    deviceSettings.deviceIdAliases[oldId] = newId;
+  });
+
   return deviceSettings;
 }
 
@@ -301,6 +313,42 @@ function saveDeviceSettings() {
     fs.mkdirSync(dir, { recursive: true });
   }
   fs.writeFileSync(settingsPath, JSON.stringify(deviceSettings, null, 2), 'utf8');
+}
+
+function resolveDeviceIdAlias(deviceId) {
+  loadDeviceSettings();
+  let resolvedId = String(deviceId || '').trim();
+  const seen = new Set();
+
+  for (let depth = 0; depth < 20; depth += 1) {
+    const nextId = deviceSettings.deviceIdAliases[resolvedId];
+    if (!nextId || seen.has(resolvedId)) {
+      break;
+    }
+
+    seen.add(resolvedId);
+    resolvedId = nextId;
+  }
+
+  return resolvedId;
+}
+
+function registerDeviceIdAlias(oldId, newId) {
+  const fromId = String(oldId || '').trim();
+  const toId = String(newId || '').trim();
+  if (!fromId || !toId || fromId === toId) {
+    return false;
+  }
+
+  Object.keys(deviceSettings.deviceIdAliases).forEach(aliasId => {
+    if (deviceSettings.deviceIdAliases[aliasId] === fromId) {
+      deviceSettings.deviceIdAliases[aliasId] = toId;
+    }
+  });
+
+  deviceSettings.deviceIdAliases[fromId] = toId;
+  delete deviceSettings.deviceIdAliases[toId];
+  return true;
 }
 
 function maybeMigrateReidentifiedDevice(currentDevices) {
@@ -328,6 +376,7 @@ function maybeMigrateReidentifiedDevice(currentDevices) {
     lastKnownName: newName,
   };
   delete deviceSettings.devices[oldId];
+  registerDeviceIdAlias(oldId, newDevice.id);
   saveDeviceSettings();
   return true;
 }
@@ -550,9 +599,10 @@ function registerCustomProtocol() {
 }
 
 async function switchDeviceById(deviceId, fallbackName = '') {
+  const resolvedDeviceId = resolveDeviceIdAlias(deviceId);
   const result = await selector.EnumAudioDevice();
   const mergedDevices = getMergedDeviceList(result.devices);
-  const targetDevice = mergedDevices.find(device => device.id === deviceId);
+  const targetDevice = mergedDevices.find(device => device.id === resolvedDeviceId);
 
   if (!targetDevice || !targetDevice.available) {
     await refreshMenu();
