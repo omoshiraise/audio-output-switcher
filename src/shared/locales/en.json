@@ -7,6 +7,7 @@
   "tooltipPrefix": "Audio output: ",
   "audioOutputChanged": "Audio output: {{device}}",
   "deviceDisconnected": "Device is disconnected: {{device}}",
+  "legacyShortcutUnsupported": "This shortcut is from an older version. Please recreate it from Settings.",
   "refresh": "Refresh",
   "saveAndClose": "Save and Close",
   "close": "Close",

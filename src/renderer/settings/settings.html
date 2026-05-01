@@ -387,6 +387,7 @@
 
       container.innerHTML = visibleDevices.map(device => {
         const title = escapeHtml(device.name || `(${t('unknownDevice')})`);
+        const windowsDeviceId = escapeHtml(device.windowsDeviceId || '');
         const aliasValue = escapeHtml(device.alias || '');
         const hotkeyValue = device.hotkey || HOTKEY_NONE_VALUE;
         const iconNameValue = normalizeIconName(device.iconName);
@@ -418,7 +419,7 @@
         ` : '';
 
         return `
-          <div class="table-row${missingClass}" data-device-id="${device.id}" data-device-name="${device.available ? title : ''}" data-device-available="${device.available ? 'true' : 'false'}">
+          <div class="table-row${missingClass}" data-device-id="${device.id}" data-windows-device-id="${windowsDeviceId}" data-device-name="${device.available ? title : ''}" data-device-available="${device.available ? 'true' : 'false'}">
             <div class="device-name-row">
               <div class="device-name${!device.available ? ' unavailable' : ''}">${displayName}</div>
             </div>
@@ -496,7 +497,7 @@
       // to be cancelled before the main process starts the OS-level drag.
       event.preventDefault();
       window.settingsAPI.startShortcutDrag({
-        deviceId: row.dataset.deviceId,
+        internalId: row.dataset.deviceId,
         displayName,
         iconName: normalizeIconName(dragHandle.dataset.iconName),
       });
@@ -538,6 +539,7 @@
         const rows = Array.from(document.querySelectorAll('.table-row'));
         const deviceUpdates = rows.map(row => {
           const id = row.dataset.deviceId;
+          const windowsDeviceId = row.dataset.windowsDeviceId || '';
           const name = row.dataset.deviceName || '';
           const available = row.dataset.deviceAvailable === 'true';
           const visible = row.querySelector('.hide-checkbox').checked;
@@ -545,7 +547,7 @@
           const hotkey = row.querySelector('.hotkey-select').value;
           const iconButton = row.querySelector('.device-icon-button');
           const iconName = normalizeIconName(iconButton ? iconButton.dataset.iconName : '');
-          return { id, name, available, hidden: !visible, alias, hotkey, iconName };
+          return { id, windowsDeviceId, name, available, hidden: !visible, alias, hotkey, iconName };
         });
         const payload = {
           deviceUpdates,

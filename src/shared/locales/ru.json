@@ -7,6 +7,7 @@
   "tooltipPrefix": "Аудиовыход: ",
   "audioOutputChanged": "Аудиовыход: {{device}}",
   "deviceDisconnected": "Устройство не подключено: {{device}}",
+  "legacyShortcutUnsupported": "Этот ярлык создан в старой версии. Создайте его заново в параметрах.",
   "refresh": "Обновить",
   "saveAndClose": "Сохранить и закрыть",
   "close": "Закрыть",

@@ -7,6 +7,7 @@
   "tooltipPrefix": "オーディオ出力：",
   "audioOutputChanged": "オーディオ出力：{{device}}",
   "deviceDisconnected": "デバイスが未接続です：{{device}}",
+  "legacyShortcutUnsupported": "このショートカットは古い形式です。設定画面から作り直してください。",
   "refresh": "更新",
   "saveAndClose": "保存して閉じる",
   "close": "閉じる",

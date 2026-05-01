@@ -7,6 +7,7 @@
   "tooltipPrefix": "Audioausgabe: ",
   "audioOutputChanged": "Audioausgabe: {{device}}",
   "deviceDisconnected": "Gerät ist nicht verbunden: {{device}}",
+  "legacyShortcutUnsupported": "Diese Verknüpfung stammt aus einer älteren Version. Bitte erstellen Sie sie in den Einstellungen neu.",
   "refresh": "Aktualisieren",
   "saveAndClose": "Speichern und schließen",
   "close": "Schließen",

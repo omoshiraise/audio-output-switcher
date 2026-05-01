@@ -17,9 +17,9 @@ function sanitizeShortcutFileName(value) {
   return sanitized || 'Audio Device';
 }
 
-function buildShortcutUrl(deviceId, displayName) {
+function buildShortcutUrl(internalId, displayName) {
   const params = new URLSearchParams({
-    deviceId: String(deviceId || ''),
+    internalId: String(internalId || ''),
     deviceName: String(displayName || ''),
   });
   return `${CUSTOM_PROTOCOL}://switch?${params.toString()}`;
@@ -36,15 +36,16 @@ function parseSwitchRequestFromArg(arg) {
       return null;
     }
 
-    const deviceId = String(url.searchParams.get('deviceId') || '').trim();
-    if (!deviceId) {
-      return null;
+    const internalId = String(url.searchParams.get('internalId') || '').trim();
+    if (internalId) {
+      return {
+        internalId,
+        deviceName: String(url.searchParams.get('deviceName') || '').trim(),
+      };
     }
 
-    return {
-      deviceId,
-      deviceName: String(url.searchParams.get('deviceName') || '').trim(),
-    };
+    const legacyDeviceId = String(url.searchParams.get('deviceId') || '').trim();
+    return legacyDeviceId ? { legacyShortcut: true } : null;
   } catch (error) {
     return null;
   }
@@ -77,7 +78,7 @@ function getRootExecutablePath() {
   return currentExecPath;
 }
 
-function writeShortcutFile({ app, iconPath, deviceId, displayName }) {
+function writeShortcutFile({ app, iconPath, internalId, displayName }) {
   if (!app.isPackaged) {
     throw new Error('Shortcut creation is only supported in packaged builds.');
   }
@@ -92,7 +93,7 @@ function writeShortcutFile({ app, iconPath, deviceId, displayName }) {
     throw new Error('Shortcut creation is supported only on Windows.');
   }
 
-  const shortcutUrl = buildShortcutUrl(deviceId, displayName);
+  const shortcutUrl = buildShortcutUrl(internalId, displayName);
   const targetPath = getRootExecutablePath();
   const workingDir = path.dirname(targetPath);
 

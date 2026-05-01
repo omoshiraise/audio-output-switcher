@@ -7,6 +7,7 @@
   "tooltipPrefix": "Sortie audio : ",
   "audioOutputChanged": "Sortie audio : {{device}}",
   "deviceDisconnected": "L'appareil est déconnecté : {{device}}",
+  "legacyShortcutUnsupported": "Ce raccourci provient d'une ancienne version. Recréez-le depuis les paramètres.",
   "refresh": "Actualiser",
   "saveAndClose": "Enregistrer et fermer",
   "close": "Fermer",

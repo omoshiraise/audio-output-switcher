@@ -2,6 +2,7 @@
 
 const { app, Tray, Menu, BrowserWindow, ipcMain, globalShortcut } = require('electron');
 const childProcess = require('child_process');
+const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const { pathToFileURL } = require('url');
@@ -103,6 +104,7 @@ let refreshInProgress = false;
 let currentLocale = 'en';
 const HOTKEY_NONE_VALUE = '__none__';
 const DEFAULT_DEVICE_ICON_NAME = 'speaker_pink';
+const DEVICE_SETTINGS_SCHEMA_VERSION = 2;
 const DEVICE_ICON_OPTIONS = Object.freeze([
   'speaker_pink',
   'speaker_blue',
@@ -118,7 +120,11 @@ const DEVICE_ICON_OPTIONS = Object.freeze([
 let pendingSwitchRequest = null;
 
 function createDefaultDeviceSettings() {
-  return { alias: '', hidden: false, hotkey: HOTKEY_NONE_VALUE, iconName: DEFAULT_DEVICE_ICON_NAME, lastKnownName: '' };
+  return { windowsDeviceId: '', alias: '', hidden: false, hotkey: HOTKEY_NONE_VALUE, iconName: DEFAULT_DEVICE_ICON_NAME, lastKnownName: '' };
+}
+
+function createInternalDeviceId() {
+  return `appdev_${crypto.randomBytes(8).toString('hex')}`;
 }
 
 function normalizeHotkey(value) {
@@ -254,19 +260,34 @@ function loadDeviceSettings() {
   }
 
   const settingsPath = getSettingsFilePath();
+  let migratedSettings = false;
   try {
     const json = fs.readFileSync(settingsPath, 'utf8');
     deviceSettings = JSON.parse(json);
   } catch (err) {
-    deviceSettings = { devices: {}, deviceIdAliases: {}, hotkeysEnabled: false, startupEnabled: false };
+    deviceSettings = { schemaVersion: DEVICE_SETTINGS_SCHEMA_VERSION, devices: {}, hotkeysEnabled: false, startupEnabled: false };
   }
 
   if (!deviceSettings.devices || typeof deviceSettings.devices !== 'object') {
     deviceSettings.devices = {};
   }
-  if (!deviceSettings.deviceIdAliases || typeof deviceSettings.deviceIdAliases !== 'object') {
-    deviceSettings.deviceIdAliases = {};
+
+  if (deviceSettings.schemaVersion !== DEVICE_SETTINGS_SCHEMA_VERSION) {
+    const migratedDevices = {};
+    Object.entries(deviceSettings.devices).forEach(([windowsDeviceId, rawSettings]) => {
+      const internalId = createInternalDeviceId();
+      migratedDevices[internalId] = {
+        ...createDefaultDeviceSettings(),
+        ...(rawSettings && typeof rawSettings === 'object' ? rawSettings : {}),
+        windowsDeviceId,
+      };
+    });
+    deviceSettings.devices = migratedDevices;
+    deviceSettings.schemaVersion = DEVICE_SETTINGS_SCHEMA_VERSION;
+    delete deviceSettings.deviceIdAliases;
+    migratedSettings = true;
   }
+
   if (typeof deviceSettings.hotkeysEnabled !== 'boolean') {
     deviceSettings.hotkeysEnabled = false;
   }
@@ -276,32 +297,28 @@ function loadDeviceSettings() {
   }
 
   // Ensure each device has a normalized hotkey value.
-  Object.keys(deviceSettings.devices).forEach(id => {
-    if (!deviceSettings.devices[id] || typeof deviceSettings.devices[id] !== 'object') {
-      deviceSettings.devices[id] = createDefaultDeviceSettings();
+  Object.keys(deviceSettings.devices).forEach(internalId => {
+    if (!deviceSettings.devices[internalId] || typeof deviceSettings.devices[internalId] !== 'object') {
+      deviceSettings.devices[internalId] = createDefaultDeviceSettings();
       return;
     }
-    if (!deviceSettings.devices[id].hotkey) {
-      deviceSettings.devices[id].hotkey = HOTKEY_NONE_VALUE;
+    if (!deviceSettings.devices[internalId].hotkey) {
+      deviceSettings.devices[internalId].hotkey = HOTKEY_NONE_VALUE;
     } else {
-      deviceSettings.devices[id].hotkey = normalizeHotkey(deviceSettings.devices[id].hotkey);
+      deviceSettings.devices[internalId].hotkey = normalizeHotkey(deviceSettings.devices[internalId].hotkey);
     }
-    if (deviceSettings.devices[id].iconName === undefined && deviceSettings.devices[id].iconColor !== undefined) {
-      deviceSettings.devices[id].iconName = DEFAULT_DEVICE_ICON_NAME;
-      delete deviceSettings.devices[id].iconColor;
+    if (deviceSettings.devices[internalId].iconName === undefined && deviceSettings.devices[internalId].iconColor !== undefined) {
+      deviceSettings.devices[internalId].iconName = DEFAULT_DEVICE_ICON_NAME;
+      delete deviceSettings.devices[internalId].iconColor;
     }
-    deviceSettings.devices[id].iconName = normalizeIconName(deviceSettings.devices[id].iconName);
-    deviceSettings.devices[id].lastKnownName = String(deviceSettings.devices[id].lastKnownName || '').trim();
+    deviceSettings.devices[internalId].windowsDeviceId = String(deviceSettings.devices[internalId].windowsDeviceId || '').trim();
+    deviceSettings.devices[internalId].iconName = normalizeIconName(deviceSettings.devices[internalId].iconName);
+    deviceSettings.devices[internalId].lastKnownName = String(deviceSettings.devices[internalId].lastKnownName || '').trim();
   });
 
-  Object.keys(deviceSettings.deviceIdAliases).forEach(oldId => {
-    const newId = String(deviceSettings.deviceIdAliases[oldId] || '').trim();
-    if (!oldId || !newId || oldId === newId) {
-      delete deviceSettings.deviceIdAliases[oldId];
-      return;
-    }
-    deviceSettings.deviceIdAliases[oldId] = newId;
-  });
+  if (migratedSettings) {
+    saveDeviceSettings();
+  }
 
   return deviceSettings;
 }
@@ -315,55 +332,19 @@ function saveDeviceSettings() {
   fs.writeFileSync(settingsPath, JSON.stringify(deviceSettings, null, 2), 'utf8');
 }
 
-function resolveDeviceIdAlias(deviceId) {
-  loadDeviceSettings();
-  let resolvedId = String(deviceId || '').trim();
-  const seen = new Set();
-
-  for (let depth = 0; depth < 20; depth += 1) {
-    const nextId = deviceSettings.deviceIdAliases[resolvedId];
-    if (!nextId || seen.has(resolvedId)) {
-      break;
-    }
-
-    seen.add(resolvedId);
-    resolvedId = nextId;
-  }
-
-  return resolvedId;
-}
-
-function registerDeviceIdAlias(oldId, newId) {
-  const fromId = String(oldId || '').trim();
-  const toId = String(newId || '').trim();
-  if (!fromId || !toId || fromId === toId) {
-    return false;
-  }
-
-  Object.keys(deviceSettings.deviceIdAliases).forEach(aliasId => {
-    if (deviceSettings.deviceIdAliases[aliasId] === fromId) {
-      deviceSettings.deviceIdAliases[aliasId] = toId;
-    }
-  });
-
-  deviceSettings.deviceIdAliases[fromId] = toId;
-  delete deviceSettings.deviceIdAliases[toId];
-  return true;
-}
-
 function maybeMigrateReidentifiedDevice(currentDevices) {
   const currentMap = new Map(currentDevices.map(device => [device.id, device]));
-  const savedIds = Object.keys(deviceSettings.devices);
-  const missingSavedIds = savedIds.filter(id => !currentMap.has(id));
-  const newCurrentDevices = currentDevices.filter(device => !deviceSettings.devices[device.id]);
+  const savedEntries = Object.entries(deviceSettings.devices);
+  const savedWindowsIds = new Set(savedEntries.map(([, settings]) => settings.windowsDeviceId).filter(Boolean));
+  const missingSavedEntries = savedEntries.filter(([, settings]) => !currentMap.has(settings.windowsDeviceId));
+  const newCurrentDevices = currentDevices.filter(device => !savedWindowsIds.has(device.id));
 
-  if (missingSavedIds.length !== 1 || newCurrentDevices.length !== 1) {
+  if (missingSavedEntries.length !== 1 || newCurrentDevices.length !== 1) {
     return false;
   }
 
-  const oldId = missingSavedIds[0];
+  const [internalId, oldSettings] = missingSavedEntries[0];
   const newDevice = newCurrentDevices[0];
-  const oldSettings = deviceSettings.devices[oldId];
   const oldName = String(oldSettings.lastKnownName || oldSettings.alias || '').trim();
   const newName = String(newDevice.name || '').trim();
 
@@ -371,20 +352,20 @@ function maybeMigrateReidentifiedDevice(currentDevices) {
     return false;
   }
 
-  deviceSettings.devices[newDevice.id] = {
+  deviceSettings.devices[internalId] = {
     ...oldSettings,
+    windowsDeviceId: newDevice.id,
     lastKnownName: newName,
   };
-  delete deviceSettings.devices[oldId];
-  registerDeviceIdAlias(oldId, newDevice.id);
   saveDeviceSettings();
   return true;
 }
 
 function updateLastKnownDeviceNames(currentDevices) {
   let changed = false;
+  const settingsByWindowsId = new Map(Object.values(deviceSettings.devices).map(settings => [settings.windowsDeviceId, settings]));
   currentDevices.forEach(device => {
-    const settings = deviceSettings.devices[device.id];
+    const settings = settingsByWindowsId.get(device.id);
     const deviceName = String(device.name || '').trim();
     if (!settings || !deviceName || settings.lastKnownName === deviceName) {
       return;
@@ -402,20 +383,36 @@ function updateLastKnownDeviceNames(currentDevices) {
 function getMergedDeviceList(currentDevices) {
   loadDeviceSettings();
   maybeMigrateReidentifiedDevice(currentDevices);
+  let changed = false;
+  const internalIdByWindowsId = new Map(Object.entries(deviceSettings.devices).map(([internalId, settings]) => [settings.windowsDeviceId, internalId]));
+  currentDevices.forEach(device => {
+    if (internalIdByWindowsId.has(device.id)) {
+      return;
+    }
+
+    const internalId = createInternalDeviceId();
+    deviceSettings.devices[internalId] = {
+      ...createDefaultDeviceSettings(),
+      windowsDeviceId: device.id,
+      lastKnownName: String(device.name || '').trim(),
+    };
+    changed = true;
+  });
+  if (changed) {
+    saveDeviceSettings();
+  }
   updateLastKnownDeviceNames(currentDevices);
   const currentMap = new Map(currentDevices.map(device => [device.id, device]));
-  const savedIds = Object.keys(deviceSettings.devices);
-  const mergedIds = new Set([...currentMap.keys(), ...savedIds]);
 
   const merged = [];
-  mergedIds.forEach(id => {
-    const current = currentMap.get(id);
-    const settings = deviceSettings.devices[id] || createDefaultDeviceSettings();
+  Object.entries(deviceSettings.devices).forEach(([internalId, settings]) => {
+    const current = currentMap.get(settings.windowsDeviceId);
     const lastKnownName = String(settings.lastKnownName || '').trim();
     const staleUnknown = !current && !lastKnownName && !settings.alias;
     const name = current ? current.name : (lastKnownName || settings.alias || '不明なデバイス');
     merged.push({
-      id,
+      id: internalId,
+      windowsDeviceId: settings.windowsDeviceId,
       name,
       alias: settings.alias || '',
       hidden: Boolean(settings.hidden),
@@ -572,7 +569,7 @@ function refreshSettingsWindow() {
 }
 
 async function processSwitchRequest(request) {
-  if (!request || !request.deviceId) {
+  if (!request) {
     return;
   }
 
@@ -583,8 +580,17 @@ async function processSwitchRequest(request) {
 
   pendingSwitchRequest = null;
 
+  if (request.legacyShortcut) {
+    popup.show(i18n.t('legacyShortcutUnsupported'));
+    return;
+  }
+
+  if (!request.internalId) {
+    return;
+  }
+
   try {
-    await switchDeviceById(request.deviceId, request.deviceName);
+    await switchDeviceByInternalId(request.internalId, request.deviceName);
   } catch (error) {
     console.error('Shortcut switch failed:', error);
   }
@@ -598,21 +604,20 @@ function registerCustomProtocol() {
   }
 }
 
-async function switchDeviceById(deviceId, fallbackName = '') {
-  const resolvedDeviceId = resolveDeviceIdAlias(deviceId);
+async function switchDeviceByInternalId(internalId, fallbackName = '') {
   const result = await selector.EnumAudioDevice();
   const mergedDevices = getMergedDeviceList(result.devices);
-  const targetDevice = mergedDevices.find(device => device.id === resolvedDeviceId);
+  const targetDevice = mergedDevices.find(device => device.id === internalId);
 
   if (!targetDevice || !targetDevice.available) {
     await refreshMenu();
     popup.show(i18n.t('deviceDisconnected', {
-      device: fallbackName || deviceId
+      device: fallbackName || internalId
     }));
     return false;
   }
 
-  await selector.SelectAudioDevice(targetDevice.id);
+  await selector.SelectAudioDevice(targetDevice.windowsDeviceId);
   await refreshMenu();
   popup.show(i18n.t('audioOutputChanged', { device: targetDevice.alias || targetDevice.name }));
   return true;
@@ -639,7 +644,7 @@ async function setupHotkeys() {
       }
       const success = globalShortcut.register(hotkey, async () => {
         try {
-          await switchDeviceById(device.id, device.alias || device.name);
+          await switchDeviceByInternalId(device.id, device.alias || device.name);
         } catch (err) {
           console.error('Hotkey switch failed:', err);
         }
@@ -665,7 +670,7 @@ async function setupHotkeys() {
         const visibleDevices = mergedDevices.filter(d => d.available && !d.hidden);
         if (visibleDevices.length === 0) return;
 
-        const currentIndex = visibleDevices.findIndex(d => d.id === result.defaultDeviceId);
+        const currentIndex = visibleDevices.findIndex(d => d.windowsDeviceId === result.defaultDeviceId);
         let nextIndex;
         if (accel === 'Ctrl+Alt+Up') {
           nextIndex = currentIndex > 0 ? currentIndex - 1 : visibleDevices.length - 1;
@@ -673,7 +678,7 @@ async function setupHotkeys() {
           nextIndex = currentIndex < visibleDevices.length - 1 ? currentIndex + 1 : 0;
         }
         const nextDevice = visibleDevices[nextIndex];
-        await selector.SelectAudioDevice(nextDevice.id);
+        await selector.SelectAudioDevice(nextDevice.windowsDeviceId);
         await refreshMenu();
 
         const notificationTitle = i18n.t('audioOutputChanged', { device: nextDevice.alias || nextDevice.name });
@@ -735,12 +740,12 @@ async function buildMenuTemplate() {
   const mergedDevices = getMergedDeviceList(result.devices);
   const visibleDevices = mergedDevices.filter(device => device.available && !device.hidden);
 
-  const defaultDevice = mergedDevices.find(device => device.id === result.defaultDeviceId);
+  const defaultDevice = mergedDevices.find(device => device.windowsDeviceId === result.defaultDeviceId);
   const defaultDeviceName = defaultDevice ? (defaultDevice.alias || defaultDevice.name) : '不明なデバイス';
   const defaultIconName = defaultDevice ? normalizeIconName(defaultDevice.iconName) : DEFAULT_DEVICE_ICON_NAME;
 
   const deviceItems = visibleDevices.map(device => {
-    const isDefault = device.id === result.defaultDeviceId;
+    const isDefault = device.windowsDeviceId === result.defaultDeviceId;
     const label = device.alias || device.name;
 
     return {
@@ -751,7 +756,7 @@ async function buildMenuTemplate() {
       click: async () => {
         if (isDefault) return;
         try {
-          await selector.SelectAudioDevice(device.id);
+          await selector.SelectAudioDevice(device.windowsDeviceId);
         } catch (err) {
           console.error('SelectAudioDevice:', err.message);
         }
@@ -850,6 +855,7 @@ ipcMain.handle('settings:update', async (_event, updates) => {
     if (!deviceSettings.devices[id]) {
       deviceSettings.devices[id] = createDefaultDeviceSettings();
     }
+    deviceSettings.devices[id].windowsDeviceId = String(update.windowsDeviceId || deviceSettings.devices[id].windowsDeviceId || '').trim();
     deviceSettings.devices[id].hidden = Boolean(update.hidden);
     deviceSettings.devices[id].alias = String(update.alias || '').trim();
     deviceSettings.devices[id].hotkey = normalizeHotkey(update.hotkey);
@@ -889,10 +895,10 @@ ipcMain.on('shortcut:drag-start', (event, payload) => {
     return;
   }
 
-  const deviceId = String(payload && payload.deviceId ? payload.deviceId : '').trim();
+  const internalId = String(payload && payload.internalId ? payload.internalId : '').trim();
   const displayName = String(payload && payload.displayName ? payload.displayName : '').trim();
   const iconName = normalizeIconName(payload && payload.iconName);
-  if (!deviceId || !displayName) {
+  if (!internalId || !displayName) {
     return;
   }
 
@@ -901,7 +907,7 @@ ipcMain.on('shortcut:drag-start', (event, payload) => {
     const shortcutPath = writeShortcutFile({
       app,
       iconPath,
-      deviceId,
+      internalId,
       displayName,
     });
     event.sender.startDrag({
