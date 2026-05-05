@@ -6,6 +6,7 @@
   "deviceFetchFailed": "Ошибка при получении устройств",
   "tooltipPrefix": "Аудиовыход: ",
   "audioOutputChanged": "Аудиовыход: {{device}}",
+  "audioOutputChanging": "Изменение аудиовыхода: {{device}}",
   "deviceDisconnected": "Устройство не подключено: {{device}}",
   "legacyShortcutUnsupported": "Этот ярлык создан в старой версии. Создайте его заново в параметрах.",
   "refresh": "Обновить",

@@ -6,6 +6,7 @@
   "deviceFetchFailed": "Failed to fetch devices",
   "tooltipPrefix": "Audio output: ",
   "audioOutputChanged": "Audio output: {{device}}",
+  "audioOutputChanging": "Changing audio output: {{device}}",
   "deviceDisconnected": "Device is disconnected: {{device}}",
   "legacyShortcutUnsupported": "This shortcut is from an older version. Please recreate it from Settings.",
   "refresh": "Refresh",

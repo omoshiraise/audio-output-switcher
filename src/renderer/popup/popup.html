@@ -9,5 +9,11 @@
       const msgElement = document.getElementById('msg');
       msgElement.textContent = message;
     });
+
+    window.popupAPI.onPlaySound((soundUrl) => {
+      if (!soundUrl) return;
+      const audio = new Audio(soundUrl);
+      audio.play().catch(() => {});
+    });
   </script>
 </body>

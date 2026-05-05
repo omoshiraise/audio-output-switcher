@@ -8,4 +8,9 @@ contextBridge.exposeInMainWorld('popupAPI', {
       callback(message);
     });
   },
+  onPlaySound: (callback) => {
+    ipcRenderer.on('popup-play-sound', (event, soundUrl) => {
+      callback(soundUrl);
+    });
+  },
 });

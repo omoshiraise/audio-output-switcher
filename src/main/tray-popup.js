@@ -2,6 +2,8 @@
 const { BrowserWindow, screen } = require('electron');
 const path = require('path');
 
+const POPUP_PLAY_SOUND_CHANNEL = 'popup-play-sound';
+
 class TrayPopup {
   constructor(options = {}) {
     this.width = options.width ?? 220;
@@ -106,6 +108,19 @@ class TrayPopup {
     if (this.duration > 0) {
       clearTimeout(this._hideTimer);
       this._hideTimer = setTimeout(() => this.hide(), this.duration);
+    }
+  }
+
+  async playSound(soundUrl) {
+    if (!this._win || this._win.isDestroyed()) return;
+
+    try {
+      if (this._readyPromise) {
+        await this._readyPromise;
+      }
+      this._win.webContents.send(POPUP_PLAY_SOUND_CHANNEL, String(soundUrl || ''));
+    } catch (_) {
+      // サウンド再生に失敗しても出力切替自体は完了済みなので握りつぶす
     }
   }
 

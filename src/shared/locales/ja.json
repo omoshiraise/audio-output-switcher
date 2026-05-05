@@ -6,6 +6,7 @@
   "deviceFetchFailed": "デバイス取得失敗",
   "tooltipPrefix": "オーディオ出力：",
   "audioOutputChanged": "オーディオ出力：{{device}}",
+  "audioOutputChanging": "オーディオ出力を変更中：{{device}}",
   "deviceDisconnected": "デバイスが未接続です：{{device}}",
   "legacyShortcutUnsupported": "このショートカットは古い形式です。設定画面から作り直してください。",
   "refresh": "更新",

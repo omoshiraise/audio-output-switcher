@@ -6,6 +6,7 @@
   "deviceFetchFailed": "裝置取得失敗",
   "tooltipPrefix": "音訊輸出：",
   "audioOutputChanged": "音訊輸出：{{device}}",
+  "audioOutputChanging": "正在切換音訊輸出：{{device}}",
   "deviceDisconnected": "裝置未連線：{{device}}",
   "legacyShortcutUnsupported": "此捷徑來自舊版本。請在設定中重新建立。",
   "refresh": "重新整理",

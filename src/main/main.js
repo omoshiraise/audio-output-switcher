@@ -104,6 +104,7 @@ let refreshInProgress = false;
 let currentLocale = 'en';
 const HOTKEY_NONE_VALUE = '__none__';
 const DEFAULT_DEVICE_ICON_NAME = 'speaker_pink';
+const SELECTED_SOUND_FILE_NAME = 'selected.mp3';
 const DEVICE_SETTINGS_SCHEMA_VERSION = 2;
 const DEVICE_ICON_OPTIONS = Object.freeze([
   'speaker_pink',
@@ -157,6 +158,10 @@ function getResourcesDir() {
 
 function getDeviceIconPath(iconName) {
   return path.join(getResourcesDir(), `${normalizeIconName(iconName)}.ico`);
+}
+
+function getSelectedSoundUrl() {
+  return pathToFileURL(path.join(getResourcesDir(), SELECTED_SOUND_FILE_NAME)).href;
 }
 
 function getShortcutIconCacheDir() {
@@ -617,10 +622,21 @@ async function switchDeviceByInternalId(internalId, fallbackName = '') {
     return false;
   }
 
-  await selector.SelectAudioDevice(targetDevice.windowsDeviceId);
+  return switchToAudioDevice(targetDevice.windowsDeviceId, targetDevice.alias || targetDevice.name);
+}
+
+async function switchToAudioDevice(windowsDeviceId, displayName) {
+  await popup.show(i18n.t('audioOutputChanging', { device: displayName }));
+  const result = await selector.SelectAudioDevice(windowsDeviceId);
+
+  if (result && result.success) {
+    popup.playSound(getSelectedSoundUrl());
+    await refreshMenu();
+    return true;
+  }
+
   await refreshMenu();
-  popup.show(i18n.t('audioOutputChanged', { device: targetDevice.alias || targetDevice.name }));
-  return true;
+  return false;
 }
 
 async function setupHotkeys() {
@@ -678,11 +694,7 @@ async function setupHotkeys() {
           nextIndex = currentIndex < visibleDevices.length - 1 ? currentIndex + 1 : 0;
         }
         const nextDevice = visibleDevices[nextIndex];
-        await selector.SelectAudioDevice(nextDevice.windowsDeviceId);
-        await refreshMenu();
-
-        const notificationTitle = i18n.t('audioOutputChanged', { device: nextDevice.alias || nextDevice.name });
-        popup.show(notificationTitle);
+        await switchToAudioDevice(nextDevice.windowsDeviceId, nextDevice.alias || nextDevice.name);
       } catch (err) {
         console.error('Hotkey switch failed:', err);
       }
@@ -756,11 +768,11 @@ async function buildMenuTemplate() {
       click: async () => {
         if (isDefault) return;
         try {
-          await selector.SelectAudioDevice(device.windowsDeviceId);
+          await switchToAudioDevice(device.windowsDeviceId, label);
         } catch (err) {
           console.error('SelectAudioDevice:', err.message);
+          await refreshMenu();
         }
-        await refreshMenu();
       },
     };
   });

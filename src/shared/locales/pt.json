@@ -6,6 +6,7 @@
   "deviceFetchFailed": "Erro ao buscar dispositivos",
   "tooltipPrefix": "Saída de áudio: ",
   "audioOutputChanged": "Saída de áudio: {{device}}",
+  "audioOutputChanging": "Alterando saída de áudio: {{device}}",
   "deviceDisconnected": "O dispositivo está desconectado: {{device}}",
   "legacyShortcutUnsupported": "Este atalho é de uma versão anterior. Recrie-o nas Configurações.",
   "refresh": "Atualizar",

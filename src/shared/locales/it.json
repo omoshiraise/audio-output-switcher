@@ -6,6 +6,7 @@
   "deviceFetchFailed": "Errore nel recupero dei dispositivi",
   "tooltipPrefix": "Output audio: ",
   "audioOutputChanged": "Uscita audio: {{device}}",
+  "audioOutputChanging": "Cambio uscita audio: {{device}}",
   "deviceDisconnected": "Il dispositivo non è connesso: {{device}}",
   "legacyShortcutUnsupported": "Questo collegamento proviene da una versione precedente. Ricrealo dalle impostazioni.",
   "refresh": "Aggiorna",

@@ -16,6 +16,7 @@ module.exports = {
       './resources/speaker_red.ico',
       './resources/speaker_sky.ico',
       './resources/speaker_yellow.ico',
+      './resources/selected.mp3',
     ],
   },
   rebuildConfig: {},

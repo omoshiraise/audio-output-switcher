@@ -6,6 +6,7 @@
   "deviceFetchFailed": "Error al obtener dispositivos",
   "tooltipPrefix": "Salida de audio: ",
   "audioOutputChanged": "Salida de audio: {{device}}",
+  "audioOutputChanging": "Cambiando salida de audio: {{device}}",
   "deviceDisconnected": "El dispositivo no está conectado: {{device}}",
   "legacyShortcutUnsupported": "Este acceso directo es de una versión anterior. Vuelva a crearlo desde Configuración.",
   "refresh": "Actualizar",
