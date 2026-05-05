@@ -9,6 +9,7 @@ const { pathToFileURL } = require('url');
 const i18n = require('i18next');
 const { AudioSelector } = require('./audio-selector');
 const {
+  CUSTOM_PROTOCOL,
   parseSwitchRequestFromCommandLine,
   registerCustomProtocol: registerShortcutProtocol,
   writeShortcutFile,
@@ -61,8 +62,6 @@ function runSquirrelUpdate(commandLine = process.argv) {
   }, 1000);
   return true;
 }
-
-app.setAppUserModelId('com.audio-tray-switcher');
 
 const gotLock = app.requestSingleInstanceLock();
 if (!gotLock) {
@@ -181,6 +180,60 @@ function getStableShortcutIconPath(iconName) {
   } catch (error) {
     console.warn('Failed to cache shortcut icon, falling back to bundled icon:', error);
     return sourcePath;
+  }
+}
+
+function repairPinnedTaskbarShortcutIcons() {
+  if (process.platform !== 'win32' || !app.isPackaged) {
+    return;
+  }
+
+  loadDeviceSettings();
+  const iconPathByInternalId = {};
+  Object.entries(deviceSettings.devices).forEach(([internalId, settings]) => {
+    iconPathByInternalId[internalId] = getStableShortcutIconPath(settings.iconName);
+  });
+
+  const script = `
+$ErrorActionPreference = 'Stop'
+$taskbarDir = Join-Path $env:APPDATA 'Microsoft\\Internet Explorer\\Quick Launch\\User Pinned\\TaskBar'
+if (-not (Test-Path -LiteralPath $taskbarDir)) { exit 0 }
+$iconPathByInternalId = ConvertFrom-Json @'
+${JSON.stringify(iconPathByInternalId)}
+'@
+$shell = New-Object -ComObject WScript.Shell
+Get-ChildItem -LiteralPath $taskbarDir -Filter '*.lnk' | ForEach-Object {
+  try {
+    $shortcut = $shell.CreateShortcut($_.FullName)
+    $arguments = [string]$shortcut.Arguments
+    if (-not $arguments.StartsWith('${CUSTOM_PROTOCOL}://')) { return }
+    if ($arguments -notmatch '(?:[?&])internalId=([^&]+)') { return }
+    $internalId = [System.Uri]::UnescapeDataString($Matches[1])
+    $property = $iconPathByInternalId.PSObject.Properties[$internalId]
+    if ($null -eq $property) { return }
+    $expectedIconLocation = ([string]$property.Value) + ',0'
+    if ([string]$shortcut.IconLocation -ne $expectedIconLocation) {
+      $shortcut.IconLocation = $expectedIconLocation
+      $shortcut.Save()
+    }
+  } catch {
+  }
+}
+`;
+
+  try {
+    childProcess.execFileSync('powershell.exe', [
+      '-NoProfile',
+      '-ExecutionPolicy',
+      'Bypass',
+      '-Command',
+      script,
+    ], {
+      windowsHide: true,
+      stdio: 'ignore',
+    });
+  } catch (error) {
+    console.warn('Failed to repair pinned taskbar shortcut icons:', error);
   }
 }
 
@@ -935,6 +988,7 @@ app.whenReady().then(async () => {
   currentLocale = getAppLocale();
   i18n.changeLanguage(currentLocale);
   loadDeviceSettings();
+  repairPinnedTaskbarShortcutIcons();
   registerCustomProtocol();
 
   app.setLoginItemSettings({ openAtLogin: deviceSettings.startupEnabled, path: process.execPath });
